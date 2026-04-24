@@ -44,6 +44,7 @@ export function BaziForm() {
     e.preventDefault()
     setError(null)
 
+    if (!name.trim()) { setError("请输入姓名"); return }
     if (!birthDate) { setError("请选择出生日期"); return }
     const timeOpt = timeOptions.find((t) => t.value === birthTime)
     if (!timeOpt) { setError("请选择出生时辰"); return }
@@ -62,7 +63,7 @@ export function BaziForm() {
     setSubmitting(true)
     try {
       const chart = await calculateBazi({
-        name: name.trim() || undefined,
+        name: name.trim(),
         gender,
         calendarType,
         birthDate,
@@ -102,7 +103,7 @@ export function BaziForm() {
 
       <div className="space-y-5">
         <div className="space-y-2">
-          <Label htmlFor="name" className="font-serif text-sm text-foreground">姓名（可选）</Label>
+          <Label htmlFor="name" className="font-serif text-sm text-foreground">姓名</Label>
           <Input
             id="name"
             value={name}
