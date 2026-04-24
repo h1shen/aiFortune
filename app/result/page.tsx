@@ -1,9 +1,8 @@
 "use client"
 
-import { Suspense, useEffect, useState } from "react"
+import { Suspense, useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Loader2 } from "lucide-react"
 import { loadChartFromStorage, loadLatestChartId, streamChat } from "@/lib/api"
 import type { Chart } from "@/lib/types"
 import { SiteFooter } from "@/components/site-footer"
@@ -13,6 +12,8 @@ import { QaSheet } from "@/components/qa-sheet"
 import { ReadingSummaryCard } from "@/components/reading-summary-card"
 import { ReadingSix } from "@/components/reading-six"
 import { LifeKLine } from "@/components/life-kline"
+import { EasterEggVideo } from "@/components/easter-egg-video"
+import { ResultLoadingOverlay } from "@/components/result-loading-overlay"
 
 function ResultInner() {
   const router = useRouter()
@@ -25,8 +26,17 @@ function ResultInner() {
   const [readingText, setReadingText] = useState("")
   const [readingBusy, setReadingBusy] = useState(false)
 
-  // QA sheet open state (driven by LaiyiCard's「追问玄机」button)
+  // QA sheet open state + pending question for 一点即问
   const [sheetOpen, setSheetOpen] = useState(false)
+  const [pendingQa, setPendingQa] = useState<{ q: string; nonce: number }>({ q: "", nonce: 0 })
+  const openQa = useCallback((question?: string) => {
+    setPendingQa((p) => ({ q: question || "", nonce: p.nonce + 1 }))
+    setSheetOpen(true)
+  }, [])
+
+  // 起卦 loading overlay — 覆盖首屏直到 chart 拉到 + 动画走完
+  const [overlayDone, setOverlayDone] = useState(false)
+  const handleOverlayDone = useCallback(() => setOverlayDone(true), [])
 
   // 从 localStorage 读命盘（无后端持久化）
   useEffect(() => {
@@ -73,13 +83,12 @@ function ResultInner() {
     )
   }
 
-  if (!chart) {
+  if (!chart || !overlayDone) {
     return (
-      <div className="mx-auto flex min-h-[60vh] max-w-xl items-center justify-center px-4">
-        <div className="flex items-center gap-3 font-serif text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" /> 正在读取您的命盘...
-        </div>
-      </div>
+      <ResultLoadingOverlay
+        chartReady={!!chart}
+        onDone={handleOverlayDone}
+      />
     )
   }
 
@@ -122,13 +131,9 @@ function ResultInner() {
 
         {/* 极简顶栏 */}
         <div
-          className="relative flex items-center gap-5 px-6 py-6 md:gap-20 md:px-12"
+          className="relative flex items-center gap-4 px-6 py-6 md:px-12"
           style={{ zIndex: 2 }}
         >
-          <span className="font-serif text-lg font-semibold">玄机阁</span>
-          <span className="text-[10px] tracking-[0.25em] text-muted-foreground">
-            KEYMIND
-          </span>
           <div className="flex-1" />
           <Link
             href="/"
@@ -183,18 +188,14 @@ function ResultInner() {
           3. 两栏主体 · 四柱 / 五行 / 来意 / 玄机一签
          ========================================================= */}
       <section className="px-6 py-14 md:px-18 md:py-20 lg:px-18">
-        <div className="grid grid-cols-1 gap-7 lg:grid-cols-[1.4fr_1fr] lg:gap-8">
-          <div className="flex flex-col gap-7">
-            <PillarsCard chart={chart} />
-            <FiveElementsCard chart={chart} />
-          </div>
-          <div className="flex flex-col gap-7">
-            <LaiyiCard
-              chart={chart}
-              onOpenChat={() => setSheetOpen(true)}
-            />
-            <ReadingSummaryCard readingText={readingText} busy={readingBusy} />
-          </div>
+        <div className="grid grid-cols-1 gap-7 lg:grid-cols-[1.4fr_1fr] lg:gap-x-8 lg:gap-y-7 [&>*]:h-full">
+          <PillarsCard chart={chart} />
+          <LaiyiCard
+            chart={chart}
+            onOpenChat={openQa}
+          />
+          <FiveElementsCard chart={chart} />
+          <ReadingSummaryCard readingText={readingText} busy={readingBusy} />
         </div>
       </section>
 
@@ -225,10 +226,16 @@ function ResultInner() {
         />
       </section>
 
+      {/* =========================================================
+          5. 彩蛋 · 隐藏影片
+         ========================================================= */}
+      <EasterEggVideo />
+
       <QaSheet
         chart={chart}
         open={sheetOpen}
         onOpenChange={setSheetOpen}
+        initial={pendingQa}
       />
     </main>
   )
