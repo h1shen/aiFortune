@@ -1,595 +1,708 @@
 "use client"
 
-// 人生走势 K 线图 — ink-style candlestick chart using dayun as periods,
-// with a smoothed trend line. Data source: chart.lifeCurve (populated by backend).
+// 一生运势走向 · LIFE JOURNEY · 人生十运
+// 每十年一段 · 路高则顺、路低则难 · 红圈为当下
 
 import { useEffect, useState } from "react"
-import type { Chart } from "@/lib/types"
+import type { Chart, LifeCandle } from "@/lib/types"
 
-interface LifeCandle {
-  ganzhi: string
-  startYear: number
-  endYear: number
-  startAge: number
-  tenGod: string
-  state: "past" | "current" | "future"
-  open: number
-  close: number
-  high: number
-  low: number
-  up: boolean
-  score: number
-  drivers: string[]
+const TEN_GOD_PLAIN: Record<string, string> = {
+  正财: "稳定的收入与回报",
+  偏财: "意外之财与机遇",
+  正官: "名声与责任加身",
+  七杀: "压力大，磨练心志",
+  正印: "贵人庇佑，学业有成",
+  偏印: "得长辈照拂，思虑较多",
+  比肩: "朋友多，但易分财",
+  劫财: "防被人借财、合伙",
+  食神: "享受生活，子女缘厚",
+  伤官: "才华外显，口舌是非",
+}
+
+type Tier = "up" | "mid" | "down"
+interface Segment extends LifeCandle {
+  tier: Tier
+  tierLabel: string
+  tierDesc: string
+  tenGodPlain: string
+}
+
+const UP = "oklch(0.5 0.16 145)" // 深绿
+const MID = "oklch(0.6 0.05 75)" // 米
+const DOWN = "var(--destructive)" // 朱砂
+
+function tierOf(score: number): { tier: Tier; tierLabel: string; tierDesc: string } {
+  if (score >= 62) return { tier: "up", tierLabel: "顺境", tierDesc: "事顺人和" }
+  if (score >= 38) return { tier: "mid", tierLabel: "平稳", tierDesc: "不疾不徐" }
+  return { tier: "down", tierLabel: "逆境", tierDesc: "宜守不宜攻" }
+}
+
+function tierColor(t: Tier) {
+  return t === "up" ? UP : t === "down" ? DOWN : MID
 }
 
 export function LifeKLine({ chart }: { chart: Chart }) {
-  const series = (chart as any).lifeCurve as LifeCandle[] | undefined
+  const raw = (chart.lifeCurve || []) as LifeCandle[]
+  const series: Segment[] = raw.map((s) => {
+    const t = tierOf(s.score)
+    return { ...s, ...t, tenGodPlain: TEN_GOD_PLAIN[s.tenGod] ?? "" }
+  })
   const [hover, setHover] = useState<number | null>(null)
   const [narrow, setNarrow] = useState(false)
-  const [compact, setCompact] = useState(false)
 
   useEffect(() => {
     if (typeof window === "undefined") return
-    const narrowMQ = window.matchMedia("(max-width: 768px)")
-    const compactMQ = window.matchMedia("(max-width: 1024px)")
-    const syncNarrow = () => setNarrow(narrowMQ.matches)
-    const syncCompact = () => setCompact(compactMQ.matches)
-    syncNarrow()
-    syncCompact()
-    narrowMQ.addEventListener("change", syncNarrow)
-    compactMQ.addEventListener("change", syncCompact)
-    return () => {
-      narrowMQ.removeEventListener("change", syncNarrow)
-      compactMQ.removeEventListener("change", syncCompact)
-    }
+    const mq = window.matchMedia("(max-width: 1024px)")
+    const sync = () => setNarrow(mq.matches)
+    sync()
+    mq.addEventListener("change", sync)
+    return () => mq.removeEventListener("change", sync)
   }, [])
 
-  if (!series || series.length === 0) return null
+  if (series.length === 0) return null
 
-  // plot area
+  // 布局：viewBox 与设计稿一致（1344 × 340），下方留 120 给三行文字
   const W = 1344
-  const H = compact ? 240 : 320
-  const padL = 48
-  const padR = 48
-  const padT = 28
-  const padB = 48
+  const H = 340
+  const padL = 56,
+    padR = 56,
+    padT = 40,
+    padB = 120
   const plotW = W - padL - padR
   const plotH = H - padT - padB
   const n = series.length
   const step = plotW / n
-  const yMin = 0
-  const yMax = 100
+  const yMin = 0,
+    yMax = 100
   const y = (v: number) => padT + plotH * (1 - (v - yMin) / (yMax - yMin))
   const xCenter = (i: number) => padL + step * (i + 0.5)
-  const candleW = Math.min(36, step * 0.5)
-
-  // MA trend line points (centered close)
-  const trendPath = series
-    .map((s, i) => {
-      const prev = series[i - 1]?.close ?? s.open
-      const next = series[i + 1]?.close ?? s.close
-      const smoothed = (prev + s.close + next) / 3
-      return `${i === 0 ? "M" : "L"} ${xCenter(i).toFixed(1)} ${y(smoothed).toFixed(1)}`
-    })
-    .join(" ")
-
-  // ref levels
-  const levels = [
-    { v: 80, label: "鼎盛", color: "oklch(0.22 0.015 50 / 0.2)" },
-    { v: 50, label: "平线", color: "oklch(0.22 0.015 50 / 0.3)" },
-    { v: 20, label: "低谷", color: "oklch(0.22 0.015 50 / 0.2)" },
-  ]
 
   const curIdx = series.findIndex((s) => s.state === "current")
 
-  // 墨色/朱砂配色 — 阳(up)=朱砂描边空心, 阴(down)=墨色实心 (符合中式传统 & 直觉)
-  const RED = "var(--destructive)" // 朱砂
-  const INK = "oklch(0.24 0.02 260)" // 深墨青
-  const GREY = "oklch(0.65 0.01 70)" // 过去
+  const pts: [number, number][] = series.map((s, i) => [xCenter(i), y(s.score)])
+  const smoothPath = buildSmoothPath(pts)
+  const areaPath =
+    smoothPath +
+    ` L ${pts[pts.length - 1][0]} ${y(yMin)} L ${pts[0][0]} ${y(yMin)} Z`
+
+  const cur = curIdx >= 0 ? series[curIdx] : null
+  const focus = hover != null ? series[hover] : cur
+  const isCurrentFocus = hover == null || hover === curIdx
+
+  const peak = topAt(series, "score")
+  const trough = topAt(series, "score", true)
 
   return (
-    <div className="w-full">
-      <div
-        style={{
-          position: "relative",
-          border: "1px solid oklch(0.88 0.015 75 / 0.7)",
-          borderRadius: 6,
-          background: "var(--card)",
-          padding: "28px 28px 22px",
-          boxShadow: "0 30px 60px -30px rgba(20,25,45,0.25)",
-          overflow: "hidden",
-        }}
-      >
-        {/* 右上角装饰：小印章 */}
+    <div
+      style={{
+        position: "relative",
+        border: "1px solid oklch(0.88 0.015 75 / 0.7)",
+        borderRadius: 6,
+        background: "var(--card)",
+        padding: "32px 32px 26px",
+        boxShadow: "0 30px 60px -30px rgba(20,25,45,0.25)",
+        overflow: "hidden",
+      }}
+    >
+      {/* 标题区 */}
+      <div style={{ marginBottom: 10 }}>
         <div
           style={{
-            position: "absolute",
-            top: 22,
-            right: 28,
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
+            fontSize: 12,
+            letterSpacing: "0.3em",
+            color: "var(--accent)",
+            textTransform: "uppercase",
           }}
         >
-          <div
-            className="font-serif"
-            style={{
-              width: 40,
-              height: 40,
-              display: "grid",
-              placeItems: "center",
-              border: "2px solid var(--destructive)",
-              color: "var(--destructive)",
-              background: "oklch(0.975 0.008 85)",
-              fontSize: 14,
-              fontWeight: 700,
-              transform: "rotate(-6deg)",
-              borderRadius: 2,
-            }}
-          >
-            运
-          </div>
+          Life Journey · 人生十运
         </div>
-
-        {/* 标题 */}
-        <div style={{ marginBottom: 18 }}>
-          <div
-            style={{
-              fontSize: 11,
-              letterSpacing: "0.3em",
-              color: "var(--accent)",
-              textTransform: "uppercase",
-            }}
-          >
-            Life · K 线
-          </div>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "baseline",
-              gap: 14,
-              marginTop: 6,
-              flexWrap: "wrap",
-            }}
-          >
-            <h3 className="font-serif" style={{ fontSize: 26, fontWeight: 600, margin: 0 }}>
-              人生走势
-            </h3>
-            <span
-              className="font-serif"
-              style={{ fontSize: 13, color: "var(--muted-foreground)" }}
-            >
-              以大运为周期 · 蜡烛 = 开合起落 · 影线 = 流年极值 · 墨线 = 运势均值
-            </span>
-          </div>
-        </div>
-
-        {/* 图例 */}
         <div
           style={{
             display: "flex",
-            gap: 18,
-            fontSize: 11,
-            color: "var(--muted-foreground)",
-            marginBottom: 4,
+            alignItems: "baseline",
+            gap: 16,
+            marginTop: 8,
             flexWrap: "wrap",
           }}
         >
-          <LegendSwatch type="up" color={RED} label="阳线 · 运势上行（收 ≥ 开）" />
-          <LegendSwatch type="down" color={INK} label="阴线 · 运势下行（收 < 开）" />
-          <LegendSwatch type="line" color="var(--accent)" label="运势均线（三段平滑）" />
-          <LegendSwatch type="dot" color="var(--destructive)" label="当前大运" />
-        </div>
-
-        {/* 主图 */}
-        <div style={{ overflowX: narrow ? "auto" : "visible" }}>
-          <svg
-            viewBox={`0 0 ${W} ${H}`}
-            width="100%"
-            height={H}
-            style={{ display: "block", marginTop: 10, minWidth: narrow ? 720 : undefined }}
+          <h3 className="font-serif" style={{ fontSize: 30, fontWeight: 600, margin: 0 }}>
+            一生运势走向
+          </h3>
+          <span
+            className="font-serif"
+            style={{ fontSize: 16, color: "var(--muted-foreground)" }}
           >
-            <defs>
-              <linearGradient id="klineFade" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0%" stopColor="oklch(0.52 0.17 28 / 0.05)" />
-                <stop offset="100%" stopColor="oklch(0.24 0.02 260 / 0.02)" />
-              </linearGradient>
-              <filter id="inkBlur">
-                <feGaussianBlur stdDeviation="0.4" />
-              </filter>
-            </defs>
+            每十年一段 · 路高则顺、路低则难 · 红圈为当下
+          </span>
+        </div>
+      </div>
 
-            {/* background zones */}
+      {/* 图例 */}
+      <div
+        style={{
+          display: "flex",
+          gap: 24,
+          fontSize: 14,
+          marginTop: 14,
+          marginBottom: 8,
+          color: "var(--foreground)",
+          flexWrap: "wrap",
+          alignItems: "center",
+        }}
+      >
+        <LegendBlock color={UP} dot label="顺境" sub="事顺人和" />
+        <LegendBlock color={MID} dot label="平稳" sub="不疾不徐" />
+        <LegendBlock color={DOWN} dot label="逆境" sub="宜守不宜攻" />
+        <div style={{ flex: 1 }} />
+        <LegendBlock ring color={DOWN} label="你在这里" sub={cur?.ganzhi ?? ""} />
+      </div>
+
+      {/* 主图 */}
+      <div style={{ overflowX: narrow ? "auto" : "visible" }}>
+        <svg
+          viewBox={`0 0 ${W} ${H}`}
+          width="100%"
+          style={{
+            display: "block",
+            marginTop: 6,
+            overflow: "visible",
+            minWidth: narrow ? 900 : undefined,
+          }}
+        >
+          <defs>
+            <linearGradient id="lifeFill" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="oklch(0.72 0.12 75 / 0.28)" />
+              <stop offset="100%" stopColor="oklch(0.72 0.12 75 / 0.02)" />
+            </linearGradient>
+          </defs>
+
+          {/* 顺/平/逆 横向彩色区带 */}
+          <rect
+            x={padL}
+            y={y(yMax)}
+            width={plotW}
+            height={y(62) - y(yMax)}
+            fill="oklch(0.55 0.12 140 / 0.14)"
+          />
+          <rect
+            x={padL}
+            y={y(62)}
+            width={plotW}
+            height={y(38) - y(62)}
+            fill="oklch(0.88 0.02 80 / 0.35)"
+          />
+          <rect
+            x={padL}
+            y={y(38)}
+            width={plotW}
+            height={y(yMin) - y(38)}
+            fill="oklch(0.52 0.17 28 / 0.12)"
+          />
+
+          {/* 区带分隔线 */}
+          <line
+            x1={padL}
+            x2={W - padR}
+            y1={y(62)}
+            y2={y(62)}
+            stroke="oklch(0.55 0.12 140 / 0.5)"
+            strokeWidth={1.2}
+          />
+          <line
+            x1={padL}
+            x2={W - padR}
+            y1={y(38)}
+            y2={y(38)}
+            stroke="oklch(0.52 0.17 28 / 0.5)"
+            strokeWidth={1.2}
+          />
+
+          {/* 右侧分区标签 */}
+          <g>
+            <text
+              x={W - padR + 12}
+              y={y((100 + 62) / 2) + 5}
+              fontSize="16"
+              textAnchor="start"
+              fill="oklch(0.45 0.14 140)"
+              className="font-serif"
+              fontWeight={700}
+            >
+              顺境
+            </text>
+            <text
+              x={W - padR + 12}
+              y={y(50) + 5}
+              fontSize="14"
+              textAnchor="start"
+              fill="oklch(0.45 0.02 60)"
+              className="font-serif"
+              fontWeight={600}
+            >
+              平稳
+            </text>
+            <text
+              x={W - padR + 12}
+              y={y((38 + 0) / 2) + 5}
+              fontSize="16"
+              textAnchor="start"
+              fill="var(--destructive)"
+              className="font-serif"
+              fontWeight={700}
+            >
+              逆境
+            </text>
+          </g>
+
+          {/* 当前段高亮柱 */}
+          {curIdx >= 0 && (
             <rect
-              x={padL}
+              x={padL + curIdx * step}
               y={padT}
-              width={plotW}
-              height={plotH * 0.3}
-              fill="oklch(0.52 0.17 28 / 0.04)"
+              width={step}
+              height={plotH}
+              fill="oklch(0.52 0.17 28 / 0.07)"
+              rx="4"
             />
+          )}
+
+          {/* hover 段高亮 */}
+          {hover != null && hover !== curIdx && (
             <rect
-              x={padL}
-              y={padT + plotH * 0.7}
-              width={plotW}
-              height={plotH * 0.3}
-              fill="oklch(0.24 0.02 260 / 0.04)"
+              x={padL + hover * step}
+              y={padT}
+              width={step}
+              height={plotH}
+              fill="oklch(0.24 0.02 260 / 0.05)"
+              rx="4"
             />
+          )}
 
-            {/* 参考横线 */}
-            {levels.map((l) => (
-              <g key={l.v}>
-                <line
-                  x1={padL}
-                  x2={W - padR}
-                  y1={y(l.v)}
-                  y2={y(l.v)}
-                  stroke={l.color}
-                  strokeWidth={1}
-                  strokeDasharray="2 6"
-                />
-                <text
-                  x={padL - 8}
-                  y={y(l.v) + 4}
-                  fontSize="10"
-                  textAnchor="end"
-                  fill="oklch(0.48 0.02 60 / 0.7)"
-                  className="font-serif"
-                >
-                  {l.label}
-                </text>
-              </g>
-            ))}
+          {/* 面积 + 主线 */}
+          <path d={areaPath} fill="url(#lifeFill)" />
+          <path
+            d={smoothPath}
+            fill="none"
+            stroke="oklch(0.28 0.03 260)"
+            strokeWidth={4}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
 
-            {/* 当前大运高亮柱 */}
-            {curIdx >= 0 && (
-              <rect
-                x={padL + curIdx * step}
-                y={padT}
-                width={step}
-                height={plotH}
-                fill="oklch(0.52 0.17 28 / 0.06)"
-              />
-            )}
+          {/* 节点 + 下方信息 */}
+          {series.map((s, i) => {
+            const cx = xCenter(i)
+            const cy = y(s.score)
+            const past = s.state === "past"
+            const current = s.state === "current"
+            const col = tierColor(s.tier)
+            const r = current ? 14 : 10
+            const startAge = s.startAge ?? 0
+            const startYear = s.startYear ?? ""
+            const endYear = s.endYear ?? ""
 
-            {/* 候选 hover 高亮 */}
-            {hover != null && (
-              <rect
-                x={padL + hover * step}
-                y={padT}
-                width={step}
-                height={plotH}
-                fill="oklch(0.24 0.02 260 / 0.05)"
-              />
-            )}
-
-            {/* 均线 */}
-            <path
-              d={trendPath}
-              fill="none"
-              stroke="oklch(0.72 0.12 75)"
-              strokeWidth={1.8}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              filter="url(#inkBlur)"
-              opacity="0.85"
-            />
-
-            {/* 蜡烛 */}
-            {series.map((s, i) => {
-              const cx = xCenter(i)
-              const yH = y(s.high)
-              const yL = y(s.low)
-              const yO = y(s.open)
-              const yC = y(s.close)
-              const past = s.state === "past"
-              const current = s.state === "current"
-              // 颜色：过去灰色；当前朱砂加粗；未来按阴阳
-              let strokeC = s.up ? RED : INK
-              let fillC = s.up ? "oklch(0.975 0.008 85)" : INK
-              if (past) {
-                strokeC = GREY
-                fillC = s.up ? "oklch(0.975 0.008 85)" : GREY
-              }
-              const topB = Math.min(yO, yC)
-              const hB = Math.max(2, Math.abs(yO - yC))
-              return (
-                <g
-                  key={i}
-                  onMouseEnter={() => setHover(i)}
-                  onMouseLeave={() => setHover(null)}
-                  style={{ cursor: "pointer" }}
-                >
-                  {/* 影线 */}
-                  <line
-                    x1={cx}
-                    x2={cx}
-                    y1={yH}
-                    y2={yL}
-                    stroke={strokeC}
-                    strokeWidth={current ? 2 : 1.2}
-                  />
-                  {/* 实体 */}
-                  <rect
-                    x={cx - candleW / 2}
-                    y={topB}
-                    width={candleW}
-                    height={hB}
-                    fill={fillC}
-                    stroke={strokeC}
-                    strokeWidth={current ? 2.2 : 1.2}
-                  />
-                  {/* 当前运环 */}
-                  {current && (
+            return (
+              <g
+                key={i}
+                onMouseEnter={() => setHover(i)}
+                onMouseLeave={() => setHover(null)}
+                style={{ cursor: "pointer" }}
+              >
+                {/* 当前光晕（脉冲虚线环） */}
+                {current && (
+                  <>
                     <circle
                       cx={cx}
-                      cy={y((s.open + s.close) / 2)}
-                      r={candleW * 0.9}
+                      cy={cy}
+                      r={r + 12}
                       fill="none"
                       stroke="var(--destructive)"
                       strokeWidth={1.5}
                       strokeDasharray="3 3"
-                      opacity="0.7"
+                      opacity={0.55}
+                    >
+                      <animate
+                        attributeName="r"
+                        values={`${r + 10};${r + 16};${r + 10}`}
+                        dur="2.4s"
+                        repeatCount="indefinite"
+                      />
+                      <animate
+                        attributeName="opacity"
+                        values="0.55;0.2;0.55"
+                        dur="2.4s"
+                        repeatCount="indefinite"
+                      />
+                    </circle>
+                    <circle
+                      cx={cx}
+                      cy={cy}
+                      r={r + 5}
+                      fill="var(--destructive)"
+                      opacity={0.15}
                     />
-                  )}
-                  {/* 顶部年份 */}
-                  <text
-                    x={cx}
-                    y={padT - 10}
-                    fontSize="9.5"
-                    textAnchor="middle"
-                    fill={past ? "oklch(0.48 0.02 60 / 0.6)" : "var(--muted-foreground)"}
-                    className="font-mono"
-                  >
-                    {s.startYear}
-                  </text>
-                  {/* 底部干支 + 十神 */}
-                  <text
-                    x={cx}
-                    y={H - padB + 22}
-                    fontSize={current ? 19 : 16}
-                    textAnchor="middle"
-                    className="font-serif"
-                    fontWeight={current ? 700 : 500}
-                    fill={past ? "oklch(0.48 0.02 60 / 0.85)" : "var(--foreground)"}
-                  >
-                    {s.ganzhi}
-                  </text>
-                  <text
-                    x={cx}
-                    y={H - padB + 38}
-                    fontSize="10"
-                    textAnchor="middle"
-                    className="font-serif"
-                    fill={current ? "var(--destructive)" : "var(--muted-foreground)"}
-                  >
-                    {s.tenGod} · {s.startAge}岁
-                  </text>
-                </g>
-              )
-            })}
+                  </>
+                )}
 
-            {/* 当前大运垂直虚线 */}
-            {curIdx >= 0 && (
-              <line
-                x1={xCenter(curIdx)}
-                x2={xCenter(curIdx)}
-                y1={padT}
-                y2={H - padB}
-                stroke="var(--destructive)"
-                strokeWidth={1}
-                strokeDasharray="2 4"
-                opacity="0.5"
-              />
-            )}
-          </svg>
-        </div>
+                {/* 主圆 */}
+                <circle
+                  cx={cx}
+                  cy={cy}
+                  r={r}
+                  fill={past ? "var(--card)" : col}
+                  stroke={past ? "oklch(0.7 0.01 70)" : current ? "var(--destructive)" : col}
+                  strokeWidth={current ? 3 : 2}
+                  opacity={past ? 0.85 : 1}
+                />
+                {!past && (
+                  <circle cx={cx} cy={cy} r={current ? 5 : 3.5} fill="var(--card)" />
+                )}
 
-        {/* 详情浮窗 */}
-        {hover != null && !narrow && <HoverDetail s={series[hover]} />}
+                {/* 节点下方：年龄（大） / 年份（mono） / 干支 · 十神 */}
+                <text
+                  x={cx}
+                  y={H - padB + 34}
+                  fontSize={current ? 26 : 22}
+                  textAnchor="middle"
+                  className="font-serif"
+                  fontWeight={current ? 700 : 600}
+                  fill={past ? "oklch(0.5 0.02 60)" : "var(--foreground)"}
+                >
+                  {startAge}–{startAge + 9}岁
+                </text>
+                <text
+                  x={cx}
+                  y={H - padB + 54}
+                  fontSize="13"
+                  textAnchor="middle"
+                  className="font-mono"
+                  fill="var(--muted-foreground)"
+                >
+                  {startYear}–{endYear}
+                </text>
+                <text
+                  x={cx}
+                  y={H - padB + 76}
+                  fontSize={current ? 18 : 16}
+                  textAnchor="middle"
+                  className="font-serif"
+                  fontWeight={current ? 700 : 500}
+                  fill={current ? "var(--destructive)" : "var(--foreground)"}
+                >
+                  {s.ganzhi} · {s.tenGod}
+                </text>
 
-        {/* 脚注统计 */}
-        <div
-          className="grid grid-cols-2 md:grid-cols-5"
-          style={{
-            marginTop: 14,
-            paddingTop: 14,
-            borderTop: "1px dashed oklch(0.88 0.015 75)",
-            gap: 16,
-          }}
-        >
-          {[
-            { l: "峰顶运", v: topAt(series, "high"), desc: "高 " + topValue(series, "high") },
-            {
-              l: "谷底运",
-              v: topAt(series, "low", true),
-              desc: "低 " + topValue(series, "low", true),
-            },
-            { l: "最强上行", v: maxGain(series).ganzhi, desc: `+${maxGain(series).g}` },
-            { l: "最大回撤", v: maxDrop(series).ganzhi, desc: `${maxDrop(series).g}` },
-            {
-              l: "当前",
-              v: series[curIdx]?.ganzhi || "—",
-              desc: `${series[curIdx]?.tenGod ?? ""} · ${series[curIdx]?.close ?? ""}`,
-            },
-          ].map((x, i) => (
-            <div key={i}>
-              <div
-                style={{
-                  fontSize: 10,
-                  letterSpacing: "0.12em",
-                  textTransform: "uppercase",
-                  color: "var(--muted-foreground)",
-                }}
-              >
-                {x.l}
-              </div>
-              <div
-                className="font-serif"
-                style={{ fontSize: 18, fontWeight: 600, marginTop: 2 }}
-              >
-                {x.v}
-              </div>
-              <div
-                className="font-mono"
-                style={{ fontSize: 10, color: "var(--muted-foreground)", marginTop: 2 }}
-              >
-                {x.desc}
-              </div>
-            </div>
+                {/* 透明点击区 */}
+                <rect
+                  x={padL + i * step}
+                  y={padT}
+                  width={step}
+                  height={plotH + 90}
+                  fill="transparent"
+                />
+              </g>
+            )
+          })}
+
+          {/* 节点到下方文字的虚线 */}
+          {series.map((s, i) => (
+            <line
+              key={`gx-${i}`}
+              x1={xCenter(i)}
+              x2={xCenter(i)}
+              y1={y(s.score) + (s.state === "current" ? 26 : 12)}
+              y2={H - padB + 12}
+              stroke="oklch(0.6 0.02 70 / 0.25)"
+              strokeWidth={1}
+              strokeDasharray="2 4"
+            />
           ))}
-        </div>
+        </svg>
+      </div>
+
+      {/* 当前段 / hover 详情面板 */}
+      {focus && <DetailPanel s={focus} isCurrent={isCurrentFocus} />}
+
+      {/* 底部三栏关键提示 */}
+      <div
+        style={{
+          marginTop: 18,
+          paddingTop: 18,
+          borderTop: "1px dashed oklch(0.88 0.015 75)",
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 1fr)",
+          gap: 18,
+        }}
+      >
+        <Highlight
+          label="一生最旺"
+          ganzhi={peak.ganzhi}
+          age={`${peak.startAge ?? 0}–${(peak.startAge ?? 0) + 9}岁`}
+          tip="黄金十年 · 全力以赴"
+          color={UP}
+        />
+        <Highlight
+          label="当前所在"
+          ganzhi={cur?.ganzhi || "—"}
+          age={cur ? `${cur.startAge ?? 0}–${(cur.startAge ?? 0) + 9}岁` : ""}
+          tip={cur ? `${cur.tierLabel} · ${cur.tenGodPlain || cur.tierDesc}` : ""}
+          color={DOWN}
+          current
+        />
+        <Highlight
+          label="需要留意"
+          ganzhi={trough.ganzhi}
+          age={`${trough.startAge ?? 0}–${(trough.startAge ?? 0) + 9}岁`}
+          tip="低谷十年 · 稳字当头"
+          color={DOWN}
+        />
       </div>
     </div>
   )
 }
 
-function LegendSwatch({
-  type,
+// ============ 子组件 ============
+
+function LegendBlock({
   color,
   label,
+  sub,
+  dot,
+  ring,
 }: {
-  type: "up" | "down" | "line" | "dot"
   color: string
   label: string
+  sub?: string
+  dot?: boolean
+  ring?: boolean
 }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-      {type === "up" && (
-        <svg width="12" height="14">
-          <rect
-            x="3"
-            y="2"
-            width="6"
-            height="10"
-            fill="oklch(0.975 0.008 85)"
-            stroke={color}
-            strokeWidth="1.2"
-          />
-          <line x1="6" x2="6" y1="0" y2="14" stroke={color} strokeWidth="1" />
-        </svg>
+    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      {dot && (
+        <span
+          style={{
+            width: 16,
+            height: 16,
+            borderRadius: "50%",
+            background: color,
+            display: "inline-block",
+            boxShadow: `0 0 0 3px ${color}22`,
+          }}
+        />
       )}
-      {type === "down" && (
-        <svg width="12" height="14">
-          <rect x="3" y="2" width="6" height="10" fill={color} />
-          <line x1="6" x2="6" y1="0" y2="14" stroke={color} strokeWidth="1" />
-        </svg>
-      )}
-      {type === "line" && (
-        <svg width="20" height="10">
-          <path d="M0 7 Q 5 2 10 5 T 20 4" fill="none" stroke={color} strokeWidth="1.5" />
-        </svg>
-      )}
-      {type === "dot" && (
-        <svg width="14" height="14">
+      {ring && (
+        <svg width="22" height="22">
+          <circle cx="11" cy="11" r="6" fill={color} />
           <circle
-            cx="7"
-            cy="7"
-            r="4.5"
+            cx="11"
+            cy="11"
+            r="9"
             fill="none"
             stroke={color}
-            strokeWidth="1.5"
+            strokeWidth="1.2"
             strokeDasharray="2 2"
           />
         </svg>
       )}
-      <span>{label}</span>
+      <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.15 }}>
+        <span className="font-serif" style={{ fontSize: 15, fontWeight: 600 }}>
+          {label}
+        </span>
+        {sub && (
+          <span style={{ fontSize: 12, color: "var(--muted-foreground)" }}>{sub}</span>
+        )}
+      </div>
     </div>
   )
 }
 
-function HoverDetail({ s }: { s: LifeCandle }) {
+function DetailPanel({ s, isCurrent }: { s: Segment; isCurrent: boolean }) {
+  const col =
+    s.tier === "up"
+      ? "oklch(0.55 0.12 140)"
+      : s.tier === "down"
+        ? "var(--destructive)"
+        : "oklch(0.55 0.04 75)"
+  const startAge = s.startAge ?? 0
   return (
     <div
       style={{
-        position: "absolute",
-        top: 22,
-        left: "50%",
-        transform: "translateX(-50%)",
-        display: "flex",
-        gap: 22,
-        alignItems: "center",
-        padding: "8px 16px",
-        background: "oklch(0.22 0.015 50)",
-        color: "oklch(0.975 0.008 85)",
+        marginTop: 14,
+        padding: "16px 20px",
+        background: "oklch(0.97 0.012 82)",
+        borderLeft: `4px solid ${col}`,
         borderRadius: 4,
-        fontSize: 11,
-        boxShadow: "0 10px 30px oklch(0.22 0.015 50 / 0.3)",
-        pointerEvents: "none",
-        zIndex: 5,
+        display: "flex",
+        alignItems: "center",
+        gap: 22,
+        flexWrap: "wrap",
       }}
     >
-      <span className="font-serif" style={{ fontSize: 16, fontWeight: 700 }}>
-        {s.ganzhi}
-      </span>
-      <span className="font-mono">
-        {s.startYear}–{s.endYear} · {s.startAge}岁起
-      </span>
-      <span>
-        开 <b className="font-mono">{s.open}</b>
-      </span>
-      <span>
-        收{" "}
-        <b
-          className="font-mono"
-          style={{ color: s.up ? "oklch(0.75 0.15 30)" : "oklch(0.85 0.02 80)" }}
+      <div style={{ display: "flex", flexDirection: "column", minWidth: 110 }}>
+        <span
+          style={{
+            fontSize: 12,
+            letterSpacing: "0.2em",
+            color: "var(--muted-foreground)",
+            textTransform: "uppercase",
+          }}
         >
-          {s.close}
-        </b>
-      </span>
-      <span>
-        高 <b className="font-mono">{s.high}</b>
-      </span>
-      <span>
-        低 <b className="font-mono">{s.low}</b>
-      </span>
-      <span style={{ color: "var(--accent)" }}>{s.tenGod}</span>
+          {isCurrent ? "当前大运" : "此段大运"}
+        </span>
+        <span
+          className="font-serif"
+          style={{
+            fontSize: 26,
+            fontWeight: 700,
+            color: "var(--foreground)",
+            marginTop: 2,
+          }}
+        >
+          {s.ganzhi}
+        </span>
+      </div>
+      <div style={{ width: 1, height: 42, background: "oklch(0.88 0.015 75)" }} />
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        <span style={{ fontSize: 13, color: "var(--muted-foreground)" }}>年龄 · 年份</span>
+        <span
+          className="font-serif"
+          style={{ fontSize: 18, fontWeight: 600, marginTop: 2 }}
+        >
+          {startAge}–{startAge + 9}岁 · {s.startYear ?? ""}–{s.endYear ?? ""}
+        </span>
+      </div>
+      <div style={{ width: 1, height: 42, background: "oklch(0.88 0.015 75)" }} />
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        <span style={{ fontSize: 13, color: "var(--muted-foreground)" }}>运势</span>
+        <span
+          className="font-serif"
+          style={{ fontSize: 18, fontWeight: 700, color: col, marginTop: 2 }}
+        >
+          {s.tierLabel} · {s.tierDesc}
+        </span>
+      </div>
+      <div style={{ width: 1, height: 42, background: "oklch(0.88 0.015 75)" }} />
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          flex: 1,
+          minWidth: 240,
+        }}
+      >
+        <span style={{ fontSize: 13, color: "var(--muted-foreground)" }}>
+          此段主题 · {s.tenGod}
+        </span>
+        <span
+          className="font-serif"
+          style={{
+            fontSize: 16,
+            fontWeight: 500,
+            color: "var(--foreground)",
+            marginTop: 2,
+            lineHeight: 1.5,
+          }}
+        >
+          {s.tenGodPlain || s.tierDesc}
+        </span>
+      </div>
     </div>
   )
 }
 
-// helpers
-function topAt(
-  series: LifeCandle[],
-  key: "high" | "low" | "open" | "close",
-  inverse?: boolean,
-): string {
+function Highlight({
+  label,
+  ganzhi,
+  age,
+  tip,
+  color,
+  current,
+}: {
+  label: string
+  ganzhi: string
+  age: string
+  tip: string
+  color: string
+  current?: boolean
+}) {
+  return (
+    <div
+      style={{
+        padding: "14px 16px",
+        background: current ? "oklch(0.52 0.17 28 / 0.06)" : "oklch(0.97 0.012 82 / 0.7)",
+        border: current ? `1.5px solid ${color}55` : "1px solid oklch(0.88 0.015 75)",
+        borderRadius: 6,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <span
+          style={{
+            width: 10,
+            height: 10,
+            borderRadius: "50%",
+            background: color,
+            display: "inline-block",
+          }}
+        />
+        <span
+          style={{
+            fontSize: 13,
+            letterSpacing: "0.15em",
+            color: "var(--muted-foreground)",
+          }}
+        >
+          {label}
+        </span>
+      </div>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: 8 }}>
+        <span className="font-serif" style={{ fontSize: 22, fontWeight: 700 }}>
+          {ganzhi}
+        </span>
+        <span
+          className="font-mono"
+          style={{ fontSize: 13, color: "var(--muted-foreground)" }}
+        >
+          {age}
+        </span>
+      </div>
+      <div
+        className="font-serif"
+        style={{
+          fontSize: 14,
+          color: "var(--foreground)",
+          marginTop: 4,
+          lineHeight: 1.5,
+        }}
+      >
+        {tip}
+      </div>
+    </div>
+  )
+}
+
+// ============ helpers ============
+
+function buildSmoothPath(pts: [number, number][]): string {
+  if (pts.length < 2) return ""
+  let d = `M ${pts[0][0]} ${pts[0][1]}`
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] || pts[i]
+    const p1 = pts[i]
+    const p2 = pts[i + 1]
+    const p3 = pts[i + 2] || pts[i + 1]
+    const c1x = p1[0] + (p2[0] - p0[0]) / 6
+    const c1y = p1[1] + (p2[1] - p0[1]) / 6
+    const c2x = p2[0] - (p3[0] - p1[0]) / 6
+    const c2y = p2[1] - (p3[1] - p1[1]) / 6
+    d += ` C ${c1x.toFixed(1)} ${c1y.toFixed(1)}, ${c2x.toFixed(1)} ${c2y.toFixed(1)}, ${p2[0]} ${p2[1]}`
+  }
+  return d
+}
+
+function topAt(series: Segment[], key: "score", inverse?: boolean): Segment {
   let best = series[0]
-  let bv = series[0][key]
   for (const s of series) {
-    if (inverse ? s[key] < bv : s[key] > bv) {
-      bv = s[key]
-      best = s
-    }
-  }
-  return best.ganzhi
-}
-
-function topValue(
-  series: LifeCandle[],
-  key: "high" | "low" | "open" | "close",
-  inverse?: boolean,
-): number {
-  let bv = series[0][key]
-  for (const s of series) {
-    if (inverse ? s[key] < bv : s[key] > bv) bv = s[key]
-  }
-  return bv
-}
-
-function maxGain(series: LifeCandle[]): { g: number; ganzhi: string } {
-  let best = { g: 0, ganzhi: "—" }
-  for (const s of series) {
-    const g = s.close - s.open
-    if (g > best.g) best = { g, ganzhi: s.ganzhi }
-  }
-  return best
-}
-
-function maxDrop(series: LifeCandle[]): { g: number; ganzhi: string } {
-  let best = { g: 0, ganzhi: "—" }
-  for (const s of series) {
-    const g = s.close - s.open
-    if (g < best.g) best = { g, ganzhi: s.ganzhi }
+    if (inverse ? s[key] < best[key] : s[key] > best[key]) best = s
   }
   return best
 }
