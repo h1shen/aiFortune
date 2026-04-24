@@ -77,7 +77,34 @@ export function LifeKLine({ chart }: { chart: Chart }) {
   const y = (v: number) => padT + plotH * (1 - (v - yMin) / (yMax - yMin))
   const xCenter = (i: number) => padL + step * (i + 0.5)
 
-  const curIdx = series.findIndex((s) => s.state === "current")
+  // 定位当前段：优先 state=current，其次按 currentYear 落段，再其次按 currentDayun.ganzhi 匹配
+  let curIdx = series.findIndex((s) => s.state === "current")
+  if (curIdx < 0 && chart.currentYear) {
+    curIdx = series.findIndex(
+      (s) =>
+        s.startYear != null &&
+        s.endYear != null &&
+        chart.currentYear >= s.startYear &&
+        chart.currentYear <= s.endYear,
+    )
+  }
+  if (curIdx < 0 && chart.currentDayun) {
+    curIdx = series.findIndex((s) => s.ganzhi === chart.currentDayun!.ganzhi)
+  }
+
+  // 当 curIdx 仍 < 0：判断是未起运还是已过大运，供文案/图例使用
+  const firstStart = series[0]?.startYear ?? null
+  const lastEnd = series[series.length - 1]?.endYear ?? null
+  const preRun =
+    curIdx < 0 && firstStart != null && chart.currentYear && chart.currentYear < firstStart
+  const postRun =
+    curIdx < 0 && lastEnd != null && chart.currentYear && chart.currentYear > lastEnd
+  const curStatusLabel = preRun ? "尚未起运" : postRun ? "已过大运" : "—"
+  const curStatusTip = preRun
+    ? `${firstStart} 年起第一步大运`
+    : postRun
+      ? "颐养天年 · 静守福泽"
+      : ""
 
   const pts: [number, number][] = series.map((s, i) => [xCenter(i), y(s.score)])
   const smoothPath = buildSmoothPath(pts)
@@ -154,7 +181,12 @@ export function LifeKLine({ chart }: { chart: Chart }) {
         <LegendBlock color={MID} dot label="平稳" sub="不疾不徐" />
         <LegendBlock color={DOWN} dot label="逆境" sub="宜守不宜攻" />
         <div style={{ flex: 1 }} />
-        <LegendBlock ring color={DOWN} label="你在这里" sub={cur?.ganzhi ?? ""} />
+        <LegendBlock
+          ring
+          color={DOWN}
+          label="你在这里"
+          sub={cur?.ganzhi ?? curStatusLabel}
+        />
       </div>
 
       {/* 主图 */}
@@ -162,11 +194,13 @@ export function LifeKLine({ chart }: { chart: Chart }) {
         <svg
           viewBox={`0 0 ${W} ${H}`}
           width="100%"
+          height={H}
           style={{
             display: "block",
             marginTop: 6,
             overflow: "visible",
             minWidth: narrow ? 900 : undefined,
+            height: H,
           }}
         >
           <defs>
@@ -443,9 +477,13 @@ export function LifeKLine({ chart }: { chart: Chart }) {
         />
         <Highlight
           label="当前所在"
-          ganzhi={cur?.ganzhi || "—"}
+          ganzhi={cur?.ganzhi || curStatusLabel}
           age={cur ? `${cur.startAge ?? 0}–${(cur.startAge ?? 0) + 9}岁` : ""}
-          tip={cur ? `${cur.tierLabel} · ${cur.tenGodPlain || cur.tierDesc}` : ""}
+          tip={
+            cur
+              ? `${cur.tierLabel} · ${cur.tenGodPlain || cur.tierDesc}`
+              : curStatusTip
+          }
           color={DOWN}
           current
         />
