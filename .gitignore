@@ -15,11 +15,14 @@ node_modules
 .next/
 .DS_Store
 
-# Python backend
-server/.env
-server/__pycache__/
-server/.venv/
-server/**/*.pyc
+# Python backend (Vercel serverless + local uvicorn)
+api/.env
+api/__pycache__/
+api/**/__pycache__/
+api/**/*.pyc
+
+# Vercel build artifacts
+.vercel/
 
 # 本地参考资料 / 联调抓包快照 / 含密钥
 tmp/

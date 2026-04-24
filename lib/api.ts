@@ -1,10 +1,16 @@
 import type { CalculateRequest, Chart, ChatRequest } from "./types"
 
-// 所有请求走 Next BFF /api/proxy/* ，后端真实地址由 BACKEND_URL 环境变量注入
-const PROXY = "/api/proxy"
+// 所有请求走同源 /api/*：
+//   - 本地开发 via Next.js rewrites → http://127.0.0.1:8000（uvicorn）
+//   - Vercel 生产 → /api/index (Python serverless function)
+const API = "/api"
 
+const STORE_KEY = (id: string) => `keymind-chart-${id}`
+const LATEST_KEY = "keymind-chart-latest"
+
+/** 排盘：调后端算法，把结果写入 localStorage 以便后续 chat 无状态读取 */
 export async function calculateBazi(input: CalculateRequest): Promise<Chart> {
-  const res = await fetch(`${PROXY}/bazi/calculate`, {
+  const res = await fetch(`${API}/bazi/calculate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
@@ -13,17 +19,37 @@ export async function calculateBazi(input: CalculateRequest): Promise<Chart> {
     const msg = await res.text()
     throw new Error(`排盘失败 (${res.status}): ${msg}`)
   }
-  return res.json()
+  const chart: Chart = await res.json()
+  try {
+    localStorage.setItem(STORE_KEY(chart.chartId), JSON.stringify(chart))
+    localStorage.setItem(LATEST_KEY, chart.chartId)
+  } catch {
+    /* 隐私模式 / 容量爆满 → 忽略，功能降级（chat 会报 chart 缺失） */
+  }
+  return chart
 }
 
-export async function getChart(chartId: string): Promise<Chart> {
-  const res = await fetch(`${PROXY}/bazi/chart/${chartId}`)
-  if (!res.ok) throw new Error(`命盘获取失败 (${res.status})`)
-  return res.json()
+/** 从 localStorage 读命盘；无后端存储 */
+export function loadChartFromStorage(chartId: string): Chart | null {
+  try {
+    const raw = localStorage.getItem(STORE_KEY(chartId))
+    if (!raw) return null
+    return JSON.parse(raw) as Chart
+  } catch {
+    return null
+  }
+}
+
+export function loadLatestChartId(): string | null {
+  try {
+    return localStorage.getItem(LATEST_KEY)
+  } catch {
+    return null
+  }
 }
 
 /**
- * 连接 /chat/stream 的 SSE，逐 token 回调 onDelta。
+ * 连接 /api/chat/stream 的 SSE，逐 token 回调 onDelta。
  * 返回一个 AbortController，调用方可以取消。
  */
 export function streamChat(
@@ -36,7 +62,7 @@ export function streamChat(
   let full = ""
   ;(async () => {
     try {
-      const res = await fetch(`${PROXY}/chat/stream`, {
+      const res = await fetch(`${API}/chat/stream`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(req),
@@ -54,7 +80,6 @@ export function streamChat(
         const { done, value } = await reader.read()
         if (done) break
         buffer += decoder.decode(value, { stream: true })
-        // SSE 事件以两个换行结束
         const events = buffer.split(/\n\n/)
         buffer = events.pop() || ""
         for (const ev of events) {
@@ -71,7 +96,7 @@ export function streamChat(
                 onError?.(obj.error)
               }
             } catch {
-              // ignore malformed
+              /* malformed */
             }
           }
         }

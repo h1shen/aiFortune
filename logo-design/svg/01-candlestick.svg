@@ -1,0 +1,20 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- 01 人生K线 — 知命最标志性的输出：把命理轨迹以 K 线呈现
+       三根蜡烛：阴、阳(金·此刻)、阴；金烛最高最实，代表"此刻"的关键节点 -->
+  <g fill="currentColor" stroke="currentColor" stroke-linecap="round">
+    <!-- Left candle: hollow bearish -->
+    <line x1="25" y1="34" x2="25" y2="46" stroke-width="1.8"/>
+    <rect x="21" y="46" width="8" height="18" rx="1" fill="none" stroke-width="2"/>
+    <line x1="25" y1="64" x2="25" y2="72" stroke-width="1.8"/>
+    <!-- Right candle: solid bearish -->
+    <line x1="75" y1="40" x2="75" y2="52" stroke-width="1.8"/>
+    <rect x="71" y="52" width="8" height="16" rx="1"/>
+    <line x1="75" y1="68" x2="75" y2="74" stroke-width="1.8"/>
+  </g>
+  <!-- Middle candle: gold bullish breakthrough -->
+  <g>
+    <line x1="50" y1="16" x2="50" y2="26" stroke="#B08A3E" stroke-width="2.2" stroke-linecap="round"/>
+    <rect x="45" y="26" width="10" height="48" rx="1.4" fill="#B08A3E"/>
+    <line x1="50" y1="74" x2="50" y2="84" stroke="#B08A3E" stroke-width="2.2" stroke-linecap="round"/>
+  </g>
+</svg>

@@ -311,7 +311,7 @@ def calculate(
 
     chart_id = uuid.uuid4().hex[:16]
 
-    return {
+    chart_dict = {
         "chartId": chart_id,
         "name": name or "",
         "gender": gender,
@@ -335,3 +335,9 @@ def calculate(
         "currentYear": now_year,
         "currentLiunian": cur_liunian,
     }
+
+    # 个性化人生走势 K 线（依赖上面生成的 chart_dict）
+    from . import fortune as _fortune
+    chart_dict["lifeCurve"] = _fortune.compute_life_curve(chart_dict)
+
+    return chart_dict

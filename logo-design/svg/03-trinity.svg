@@ -1,0 +1,11 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- 03 三盘合一 — 紫微斗数 · 八字 · 奇门遁甲 三个知识体系的合集
+       三个交叠的圆，正中金点 = 答案落位 -->
+  <g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+    <circle cx="38" cy="42" r="22"/>
+    <circle cx="62" cy="42" r="22"/>
+    <circle cx="50" cy="64" r="22"/>
+  </g>
+  <!-- Centroid intersection: (50, 49.33) -->
+  <circle cx="50" cy="49.33" r="5" fill="#B08A3E"/>
+</svg>

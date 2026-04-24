@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -34,7 +34,24 @@ export function BaziForm() {
   const [calendarType, setCalendarType] = useState<CalendarType>("solar")
   const [gender, setGender] = useState<Gender>("male")
   const [name, setName] = useState("")
-  const [birthDate, setBirthDate] = useState("")
+  const [birthDate, setBirthDate] = useState("2000-01-01")
+  const dateInputRef = useRef<HTMLInputElement>(null)
+
+  const openDatePicker = () => {
+    const el = dateInputRef.current
+    if (!el) return
+    // Chromium/Safari/Edge support showPicker(); fall back to focus.
+    const maybe = el as HTMLInputElement & { showPicker?: () => void }
+    if (typeof maybe.showPicker === "function") {
+      try {
+        maybe.showPicker()
+        return
+      } catch {
+        // Some browsers throw if not in a user gesture — fall through.
+      }
+    }
+    el.focus()
+  }
   const [birthTime, setBirthTime] = useState("")
   const [location, setLocation] = useState("")
   const [submitting, setSubmitting] = useState(false)
@@ -44,6 +61,7 @@ export function BaziForm() {
     e.preventDefault()
     setError(null)
 
+    if (!name.trim()) { setError("请输入姓名"); return }
     if (!birthDate) { setError("请选择出生日期"); return }
     const timeOpt = timeOptions.find((t) => t.value === birthTime)
     if (!timeOpt) { setError("请选择出生时辰"); return }
@@ -62,7 +80,7 @@ export function BaziForm() {
     setSubmitting(true)
     try {
       const chart = await calculateBazi({
-        name: name.trim() || undefined,
+        name: name.trim(),
         gender,
         calendarType,
         birthDate,
@@ -102,7 +120,7 @@ export function BaziForm() {
 
       <div className="space-y-5">
         <div className="space-y-2">
-          <Label htmlFor="name" className="font-serif text-sm text-foreground">姓名（可选）</Label>
+          <Label htmlFor="name" className="font-serif text-sm text-foreground">姓名</Label>
           <Input
             id="name"
             value={name}
@@ -162,14 +180,19 @@ export function BaziForm() {
 
         <div className="space-y-2">
           <Label htmlFor="birthdate" className="font-serif text-sm text-foreground">出生日期</Label>
-          <div className="relative">
+          <div
+            className="relative cursor-pointer"
+            onClick={openDatePicker}
+          >
             <Calendar className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
+              ref={dateInputRef}
               id="birthdate"
               type="date"
               value={birthDate}
               onChange={(e) => setBirthDate(e.target.value)}
-              className="h-11 border-border bg-background/50 pl-10 font-serif"
+              onClick={openDatePicker}
+              className="h-11 cursor-pointer border-border bg-background/50 pl-10 font-serif"
             />
           </div>
         </div>

@@ -1,6 +1,13 @@
 export type Gender = "male" | "female"
 export type CalendarType = "solar" | "lunar"
-export type ChatMode = "reading" | "laiyi" | "qa"
+export type ChatMode = "reading" | "laiyi" | "qa" | "reading_section"
+export type ReadingSectionKey =
+  | "personality"
+  | "framework"
+  | "dayun"
+  | "elements"
+  | "keydates"
+  | "summary"
 
 export interface Location {
   province?: string
@@ -57,6 +64,22 @@ export interface LiunianScore {
   score: number // -8 ~ +8
 }
 
+export interface LifeCandle {
+  ganzhi: string
+  startYear: number | null
+  endYear: number | null
+  startAge: number | null
+  tenGod: string
+  state: "past" | "current" | "future"
+  open: number
+  close: number
+  high: number
+  low: number
+  up: boolean
+  score: number
+  drivers: string[]
+}
+
 export interface Chart {
   chartId: string
   name: string
@@ -80,6 +103,7 @@ export interface Chart {
   currentDayun: DaYun | null
   currentYear: number
   currentLiunian: string
+  lifeCurve: LifeCandle[]
 }
 
 export interface ChatMessage {
@@ -88,7 +112,9 @@ export interface ChatMessage {
 }
 
 export interface ChatRequest {
-  chartId: string
+  /** 完整命盘随 body 发送（无服务端状态，适配 Vercel serverless） */
+  chart: Chart
   mode: ChatMode
+  section?: ReadingSectionKey
   messages?: ChatMessage[]
 }

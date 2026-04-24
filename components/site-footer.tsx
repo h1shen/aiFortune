@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { BrandMark } from "@/components/brand-mark"
 
 const columns = [
   {
@@ -22,8 +23,8 @@ export function SiteFooter() {
         <div className="grid gap-10 md:grid-cols-5">
           <div className="md:col-span-2">
             <Link href="/" className="flex items-center gap-2.5">
-              <span className="flex h-10 w-10 items-center justify-center rounded-sm bg-primary font-serif text-xl font-semibold text-primary-foreground">
-                知
+              <span className="flex h-10 w-10 items-center justify-center rounded-sm border border-border/60 bg-card text-foreground">
+                <BrandMark className="h-7 w-7" />
               </span>
               <div className="flex flex-col leading-none">
                 <span className="font-serif text-lg font-semibold tracking-wider text-foreground">Keymind 知命</span>

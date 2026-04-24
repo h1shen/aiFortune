@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react"
 import { Send, Loader2 } from "lucide-react"
 import { streamChat } from "@/lib/api"
-import type { ChatMessage } from "@/lib/types"
+import type { Chart, ChatMessage } from "@/lib/types"
+import { parseLaiyi } from "@/lib/laiyi-parse"
 
 const SUGGESTIONS = [
   "我的命格属于什么格局？",
@@ -15,27 +16,42 @@ const SUGGESTIONS = [
 
 type ChatTurn = ChatMessage & { streaming?: boolean }
 
-/** 来意预测卡：进入 /result 自动触发一次 laiyi 流式输出 */
-export function LaiyiCard({ chartId }: { chartId: string }) {
+/** 来意预测卡：3 张子卡，边流式边解析；点击任一问题立即拉起 QA 抽屉并发送；底部按钮打开空白抽屉 */
+export function LaiyiCard({
+  chart,
+  onOpenChat,
+}: {
+  chart: Chart
+  onOpenChat: (question?: string) => void
+}) {
   const [laiyi, setLaiyi] = useState("")
   const [busy, setBusy] = useState(true)
 
   useEffect(() => {
-    if (!chartId) return
+    if (!chart?.chartId) return
     setLaiyi("")
     setBusy(true)
     const ctl = streamChat(
-      { chartId, mode: "laiyi" },
+      { chart, mode: "laiyi" },
       (d) => setLaiyi((s) => s + d),
       () => setBusy(false),
       (err) => { setLaiyi((s) => s + `\n[错误: ${err}]`); setBusy(false) },
     )
     return () => ctl.abort()
-  }, [chartId])
+  }, [chart])
+
+  const items = parseLaiyi(laiyi)
+  // 补齐到 3 张骨架；已解析的填充
+  const slots: Array<(typeof items)[number] | null> = [0, 1, 2].map((i) => items[i] ?? null)
+
+  const hasAny = items.length > 0
 
   return (
     <div className="relative overflow-hidden rounded-md border border-accent/40 bg-card p-6 shadow-[0_30px_60px_-30px_rgba(20,25,45,0.35)] md:p-8">
-      <div aria-hidden className="pointer-events-none absolute -inset-4 rounded-lg bg-gradient-to-br from-accent/15 via-transparent to-primary/10 blur-2xl -z-10" />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -inset-4 -z-10 rounded-lg bg-gradient-to-br from-accent/15 via-transparent to-primary/10 blur-2xl"
+      />
       <div className="mb-4 flex items-center justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.25em] text-accent">Laiyi · 来意预测</p>
@@ -43,20 +59,66 @@ export function LaiyiCard({ chartId }: { chartId: string }) {
         </div>
         {busy && <Loader2 className="h-4 w-4 animate-spin text-accent" />}
       </div>
-      <div className="min-h-[120px] whitespace-pre-wrap font-serif text-sm leading-relaxed text-foreground/90">
-        {laiyi || (busy ? "玄机正在推算您此刻的心事..." : "（暂无）")}
-        {busy && laiyi && <span className="ml-1 inline-block h-4 w-1 animate-pulse bg-accent align-middle" />}
+
+      <div className="flex flex-col gap-3">
+        {!hasAny && busy && (
+          <p className="font-serif text-sm text-muted-foreground">玄机正在推算您此刻的心事...</p>
+        )}
+        {slots.map((it, i) =>
+          it ? (
+            <button
+              key={i}
+              type="button"
+              onClick={() => onOpenChat(it.q)}
+              className="group w-full rounded-sm border border-accent/20 bg-[oklch(0.97_0.008_85/0.5)] px-3.5 py-3 text-left transition-colors hover:border-accent/60 hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+              aria-label={`向玄机提问：${it.q}`}
+            >
+              <div className="text-[10px] tracking-[0.1em] text-accent">{it.topic}</div>
+              <div className="mt-1 font-serif text-sm font-medium text-foreground">💭 {it.q}</div>
+              <div className="mt-1.5 font-serif text-[11px] leading-[1.6] text-muted-foreground">
+                原因：{it.reason}
+              </div>
+            </button>
+          ) : (
+            <div
+              key={i}
+              className="rounded-sm border border-dashed border-accent/20 bg-[oklch(0.97_0.008_85/0.3)] px-3.5 py-3 opacity-60"
+            >
+              <div className="h-2.5 w-16 rounded-sm bg-accent/20" />
+              <div className="mt-2 h-3.5 w-4/5 rounded-sm bg-foreground/10" />
+              <div className="mt-2 h-3 w-full rounded-sm bg-foreground/5" />
+              <div className="mt-1.5 h-3 w-3/4 rounded-sm bg-foreground/5" />
+            </div>
+          ),
+        )}
       </div>
+
+      <button
+        type="button"
+        onClick={() => onOpenChat()}
+        className="mt-4 w-full rounded-full border border-transparent bg-primary px-4 py-2.5 font-serif text-sm text-primary-foreground transition-opacity hover:opacity-90"
+      >
+        追问玄机 →
+      </button>
     </div>
   )
 }
 
-/** 自由问答 chat 面板 */
-export function QaChat({ chartId }: { chartId: string }) {
+/** 自由问答 chat 面板；在 Sheet 内使用，占满容器高度，无外层边框。
+ *  initial?: 父组件传来的"一点即问"初始提问；用 nonce 触发每一次点击都生效。 */
+export function QaChat({
+  chart,
+  initial,
+}: {
+  chart: Chart
+  initial?: { q: string; nonce: number }
+}) {
   const [chat, setChat] = useState<ChatTurn[]>([])
   const [input, setInput] = useState("")
   const [busy, setBusy] = useState(false)
   const scrollerRef = useRef<HTMLDivElement>(null)
+  const busyRef = useRef(false)
+  busyRef.current = busy
 
   useEffect(() => {
     scrollerRef.current?.scrollTo({ top: scrollerRef.current.scrollHeight, behavior: "smooth" })
@@ -73,7 +135,7 @@ export function QaChat({ chartId }: { chartId: string }) {
     setBusy(true)
 
     streamChat(
-      { chartId, mode: "qa", messages: history.map(({ role, content }) => ({ role, content })) },
+      { chart, mode: "qa", messages: history.map(({ role, content }) => ({ role, content })) },
       (d) => setChat((prev) => {
         const next = [...prev]
         next[assistantIdx] = { ...next[assistantIdx], content: next[assistantIdx].content + d }
@@ -90,7 +152,11 @@ export function QaChat({ chartId }: { chartId: string }) {
       (err) => {
         setChat((prev) => {
           const next = [...prev]
-          next[assistantIdx] = { ...next[assistantIdx], content: next[assistantIdx].content + `\n[错误: ${err}]`, streaming: false }
+          next[assistantIdx] = {
+            ...next[assistantIdx],
+            content: next[assistantIdx].content + `\n[错误: ${err}]`,
+            streaming: false,
+          }
           return next
         })
         setBusy(false)
@@ -98,22 +164,24 @@ export function QaChat({ chartId }: { chartId: string }) {
     )
   }
 
-  return (
-    <div className="overflow-hidden rounded-md border border-border bg-card shadow-[0_30px_60px_-30px_rgba(20,25,45,0.35)]">
-      <div className="flex items-center justify-between border-b border-border bg-secondary/60 px-5 py-3">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary font-serif text-primary-foreground">玄</div>
-          <div>
-            <p className="font-serif text-sm text-foreground">玄机 · AI 命理师</p>
-            <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-              <span className="h-1.5 w-1.5 rounded-full bg-chart-4" />
-              在线 · 已加载您的命盘
-            </p>
-          </div>
-        </div>
-      </div>
+  // Latest sendMessage via ref so the auto-send effect only depends on nonce.
+  const sendRef = useRef(sendMessage)
+  sendRef.current = sendMessage
 
-      <div ref={scrollerRef} className="max-h-[420px] min-h-[200px] space-y-4 overflow-y-auto p-5">
+  // 一点即问：父组件 initial.nonce 一变就自动把问题送出去。
+  const lastSentNonceRef = useRef<number | null>(null)
+  useEffect(() => {
+    if (!initial || !initial.q) return
+    if (lastSentNonceRef.current === initial.nonce) return
+    lastSentNonceRef.current = initial.nonce
+    // 若正有请求进行中，先不打断——下次点击会再触发。
+    if (busyRef.current) return
+    sendRef.current(initial.q)
+  }, [initial?.nonce, initial?.q, initial])
+
+  return (
+    <div className="flex h-full flex-col">
+      <div ref={scrollerRef} className="flex-1 space-y-4 overflow-y-auto p-5">
         {chat.length === 0 && (
           <div className="text-center font-serif text-sm text-muted-foreground">
             可以直接问玄机您关心的事情 —— 比如事业、感情、健康、选择。
@@ -122,7 +190,7 @@ export function QaChat({ chartId }: { chartId: string }) {
         {chat.map((m, i) => (
           <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
             <div
-              className={`max-w-[85%] rounded-lg px-4 py-3 font-serif text-sm leading-relaxed whitespace-pre-wrap ${
+              className={`max-w-[85%] whitespace-pre-wrap rounded-lg px-4 py-3 font-serif text-sm leading-relaxed ${
                 m.role === "user"
                   ? "rounded-tr-sm bg-primary text-primary-foreground"
                   : "rounded-tl-sm border border-accent/30 bg-accent/5 text-foreground"
@@ -150,7 +218,10 @@ export function QaChat({ chartId }: { chartId: string }) {
           ))}
         </div>
         <form
-          onSubmit={(e) => { e.preventDefault(); sendMessage(input) }}
+          onSubmit={(e) => {
+            e.preventDefault()
+            sendMessage(input)
+          }}
           className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2"
         >
           <input

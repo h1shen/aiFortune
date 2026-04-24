@@ -1,0 +1,13 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- 02 KeyMind 钥匙 — 产品名直译：Key + Mind
+       钥匙孔就是一枚瞳孔，钥齿就是"解开命理的齿" -->
+  <!-- Key bow (ring) -->
+  <circle cx="32" cy="50" r="18" fill="none" stroke="currentColor" stroke-width="4"/>
+  <!-- Inner iris hint -->
+  <circle cx="32" cy="50" r="3.8" fill="#B08A3E"/>
+  <!-- Shaft -->
+  <line x1="50" y1="50" x2="84" y2="50" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+  <!-- Teeth -->
+  <line x1="72" y1="50" x2="72" y2="60" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+  <line x1="80" y1="50" x2="80" y2="58" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+</svg>

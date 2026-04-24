@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>知命 KeyMind · 玄机墨圆 · 定版候选</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: oklch(0.975 0.008 85);
+    --paper-2: oklch(0.955 0.012 82);
+    --ink: oklch(0.22 0.015 50);
+    --ink-soft: oklch(0.48 0.02 60);
+    --gilt: #B08A3E;
+    --line: oklch(0.88 0.015 75);
+    --cinnabar: oklch(0.52 0.17 28);
+  }
+  html.dark{
+    --paper: oklch(0.17 0.015 260);
+    --paper-2: oklch(0.2 0.018 260);
+    --ink: oklch(0.94 0.012 80);
+    --ink-soft: oklch(0.68 0.015 75);
+    --line: oklch(0.3 0.02 260);
+    --gilt: #D4AE65;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0; padding:0}
+  body{
+    font-family:'Inter', system-ui, sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 2px, color-mix(in oklch, var(--ink) 2%, transparent) 2px, color-mix(in oklch, var(--ink) 2%, transparent) 3px),
+      radial-gradient(circle at 18% 8%, color-mix(in oklch, var(--gilt) 10%, transparent) 0, transparent 44%),
+      radial-gradient(circle at 82% 92%, color-mix(in oklch, var(--cinnabar) 5%, transparent) 0, transparent 48%);
+    background-attachment: fixed;
+    min-height:100vh;
+  }
+  .serif{font-family:'Noto Serif SC', serif; letter-spacing:.02em}
+  .wrap{max-width:1180px; margin:0 auto; padding:56px 32px}
+  header{display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap; margin-bottom:8px}
+  h1{margin:0; font-size:34px; font-weight:500}
+  h1 .en{font-family:'Inter',sans-serif; font-weight:300; color:var(--ink-soft); margin-left:14px; font-size:22px; letter-spacing:.06em}
+  .sub{color:var(--ink-soft); margin-top:6px; font-size:14px; max-width:720px; line-height:1.7}
+  .toolbar{display:flex; gap:8px; align-items:center}
+  .btn{
+    font:500 12px/1 'Inter', sans-serif; letter-spacing:.08em; text-transform:uppercase;
+    padding:10px 14px; border:1px solid var(--line); border-radius:999px;
+    background:transparent; color:var(--ink); cursor:pointer; transition:.2s;
+  }
+  .btn:hover{background:color-mix(in oklch, var(--ink) 6%, transparent)}
+  .btn[aria-pressed="true"]{background:var(--ink); color:var(--paper); border-color:var(--ink)}
+  .divider{
+    height:1px; margin:24px 0;
+    background-image:linear-gradient(to right, transparent 0%, color-mix(in oklch, var(--ink) 30%, transparent) 20%, color-mix(in oklch, var(--ink) 50%, transparent) 50%, color-mix(in oklch, var(--ink) 30%, transparent) 80%, transparent 100%);
+  }
+  section{margin:48px 0}
+  h2{
+    font:500 11px/1 'Inter',sans-serif; letter-spacing:.32em; text-transform:uppercase;
+    color:var(--ink-soft); margin:0 0 20px;
+  }
+
+  /* Hero */
+  .hero{
+    background:var(--paper-2);
+    border:1px solid var(--line);
+    border-radius:22px;
+    padding:64px;
+    display:grid; grid-template-columns: 1fr 1.05fr; gap:48px; align-items:center;
+  }
+  .hero .stage{
+    aspect-ratio:1/1;
+    display:grid; place-items:center;
+    border:1px dashed color-mix(in oklch, var(--ink) 15%, transparent);
+    border-radius:18px;
+    background:
+      radial-gradient(circle at 50% 50%, var(--paper) 0%, var(--paper-2) 80%);
+  }
+  .hero .stage svg{width:72%; height:72%}
+  .hero h3{margin:0 0 8px; font-size:28px; font-weight:500; font-family:'Noto Serif SC',serif}
+  .hero .en-title{color:var(--ink-soft); font-size:13px; letter-spacing:.28em; text-transform:uppercase}
+  .hero p{font-size:14.5px; line-height:1.85; color:color-mix(in oklch, var(--ink) 88%, transparent)}
+  .hero dl{display:grid; grid-template-columns:auto 1fr; gap:10px 18px; margin:22px 0 0; font-size:13px; color:var(--ink-soft)}
+  .hero dt{font-weight:500; color:var(--ink)}
+
+  /* Lockups */
+  .lockups{display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:16px}
+  .lock{
+    background:var(--paper-2);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:28px; height:170px;
+    display:grid; place-items:center;
+    position:relative;
+  }
+  .lock .tag{position:absolute; top:12px; left:14px; font:500 10px 'Inter',sans-serif; letter-spacing:.22em; color:var(--ink-soft); text-transform:uppercase}
+  .lock.dark{background:oklch(0.17 0.015 260); border-color:oklch(0.3 0.02 260); color:oklch(0.94 0.012 80)}
+  .lock.dark .tag{color:oklch(0.68 0.015 75)}
+
+  .mark{display:flex; align-items:center; gap:14px}
+  .mark svg{width:52px; height:52px}
+  .mark .cn{font-family:'Noto Serif SC',serif; font-size:32px; font-weight:500; letter-spacing:.18em}
+  .mark .en{font-family:'Inter',sans-serif; font-size:13px; letter-spacing:.42em; text-transform:uppercase; color:var(--ink-soft); font-weight:500}
+  .mark.stacked{flex-direction:column; gap:10px; align-items:center}
+  .mark.stacked .wordmark{display:flex; flex-direction:column; align-items:center; gap:4px}
+  .mark.stacked .cn{font-size:24px}
+  .mark.stacked .en{font-size:10px; letter-spacing:.46em}
+  .mark.solo svg{width:72px; height:72px}
+
+  /* Scale */
+  .scales{display:flex; gap:16px; align-items:flex-end; flex-wrap:wrap}
+  .tile{
+    background:var(--paper-2); border:1px solid var(--line); border-radius:14px;
+    padding:12px; display:flex; flex-direction:column; align-items:center; gap:10px;
+  }
+  .tile .box{display:grid; place-items:center; background:var(--paper); border-radius:8px; border:1px solid var(--line); color:var(--ink)}
+  .tile svg{width:82%; height:82%}
+  .tile .label{font:500 10px 'Inter',sans-serif; letter-spacing:.22em; color:var(--ink-soft); text-transform:uppercase}
+  .b16{width:18px; height:18px; border-radius:4px}
+  .b24{width:26px; height:26px; border-radius:5px}
+  .b32{width:36px; height:36px; border-radius:7px}
+  .b48{width:52px; height:52px; border-radius:9px}
+  .b64{width:68px; height:68px; border-radius:11px}
+  .b96{width:100px; height:100px; border-radius:16px}
+  .b128{width:132px; height:132px; border-radius:22px}
+
+  /* Color variants */
+  .variants-row{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px}
+  .vbox{
+    border:1px solid var(--line); border-radius:14px;
+    height:180px; display:grid; place-items:center; position:relative;
+  }
+  .vbox .tag{position:absolute; top:12px; left:14px; font:500 10px 'Inter',sans-serif; letter-spacing:.22em; text-transform:uppercase}
+  .vbox svg{width:55%; height:55%}
+  .vbox.paper{background:var(--paper-2); color:var(--ink)}
+  .vbox.paper .tag{color:var(--ink-soft)}
+  .vbox.ink{background:oklch(0.22 0.015 50); color:oklch(0.97 0.008 85)}
+  .vbox.ink .tag{color:oklch(0.7 0.015 80)}
+  .vbox.paper-mono{background:var(--paper-2); color:var(--ink)}
+  .vbox.paper-mono .tag{color:var(--ink-soft)}
+  .vbox.paper-mono .gold{color: var(--ink) !important}
+  .vbox.cinnabar{background:oklch(0.97 0.008 85); color: oklch(0.52 0.17 28)}
+  .vbox.cinnabar .tag{color: oklch(0.52 0.17 28); opacity:.7}
+  .vbox.cinnabar .gold{color:oklch(0.52 0.17 28)}
+
+  /* Context (mockups) */
+  .contexts{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px}
+  .ctx{background:var(--paper-2); border:1px solid var(--line); border-radius:14px; padding:22px}
+  .ctx h4{margin:0 0 14px; font:500 10px 'Inter',sans-serif; letter-spacing:.22em; color:var(--ink-soft); text-transform:uppercase}
+  /* Browser tab */
+  .tab-mock{background:var(--paper); border:1px solid var(--line); border-radius:10px; overflow:hidden}
+  .tab-bar{display:flex; gap:8px; padding:10px 12px; background:color-mix(in oklch, var(--ink) 6%, transparent)}
+  .tab-dot{width:10px; height:10px; border-radius:50%}
+  .tab-dot.r{background:#ff5f57} .tab-dot.y{background:#febc2e} .tab-dot.g{background:#28c840}
+  .tab-pill{margin-left:10px; display:flex; align-items:center; gap:8px; background:var(--paper); padding:4px 10px; border-radius:8px; font-size:11px; color:var(--ink-soft); border:1px solid var(--line)}
+  .tab-pill svg{width:12px; height:12px; color:var(--ink)}
+  .tab-body{padding:24px; min-height:80px}
+
+  /* App icon */
+  .app-icon{
+    width:112px; height:112px; border-radius:26px;
+    background:linear-gradient(145deg, oklch(0.975 0.008 85), oklch(0.93 0.012 80));
+    box-shadow: 0 10px 24px -10px color-mix(in oklch, var(--ink) 40%, transparent);
+    display:grid; place-items:center; margin: 0 auto;
+  }
+  .app-icon svg{width:56%; height:56%}
+  .app-icon-dark{
+    background:linear-gradient(145deg, oklch(0.22 0.015 50), oklch(0.14 0.02 260));
+    color: oklch(0.95 0.02 80);
+  }
+  .app-icon-dark .gold{color: #D4AE65}
+
+  /* Business card */
+  .card-mock{
+    aspect-ratio: 7/4; border-radius:12px; padding:18px;
+    background:linear-gradient(140deg, var(--paper), color-mix(in oklch, var(--gilt) 8%, var(--paper)));
+    border:1px solid var(--line);
+    display:flex; flex-direction:column; justify-content:space-between;
+  }
+  .card-mock .top{display:flex; align-items:center; gap:10px}
+  .card-mock .top svg{width:22px; height:22px}
+  .card-mock .top .cn{font-family:'Noto Serif SC',serif; font-size:16px; letter-spacing:.14em}
+  .card-mock .top .en{font-size:10px; letter-spacing:.36em; color:var(--ink-soft); text-transform:uppercase; margin-left:4px}
+  .card-mock .bottom{font-size:10px; color:var(--ink-soft); letter-spacing:.14em}
+
+  footer{color:var(--ink-soft); font-size:12px; padding-top:40px; display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap}
+
+  /* gilt dot override via currentColor class */
+  svg .gold-dot{fill: var(--gilt)}
+  .vbox.paper-mono svg .gold-dot, .vbox.ink svg .gold-dot{fill: #B08A3E}
+  .vbox.paper-mono svg .gold-dot{fill: currentColor}
+  .vbox.cinnabar svg .gold-dot{fill: currentColor}
+  .app-icon-dark svg .gold-dot{fill: #D4AE65}
+
+  @media (max-width: 880px){
+    .hero{grid-template-columns:1fr; padding:36px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div>
+    <h1 class="serif">玄机墨圆 · 定版候选<span class="en">Ensō Gap — 知命 KeyMind</span></h1>
+    <div class="sub">一笔墨圆＝命数首尾相续；右上缺口＝留给天机的入口；金点＝Agent 给出的那把钥匙。禅意与现代 Agent 气质同时成立，最不容易随时间过时。</div>
+  </div>
+  <div class="toolbar">
+    <a href="./showcase.html" class="btn" style="text-decoration:none">← 返回全部方案</a>
+    <button class="btn" id="mode-light" aria-pressed="true">Light</button>
+    <button class="btn" id="mode-dark" aria-pressed="false">Dark</button>
+  </div>
+</header>
+
+<div class="divider"></div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="stage">
+    <svg viewBox="0 0 100 100"><use href="#enso"/></svg>
+  </div>
+  <div>
+    <h3 class="serif">玄机墨圆 <span style="color:var(--ink-soft); font-weight:400; font-size:16px">Ensō Gap</span></h3>
+    <div class="en-title">the complete circle · the open door · the gilded key</div>
+    <p>这是一笔画就的墨圆，不合拢。合拢意味着命数封闭、再无变量；不合拢，才有 Agent 读入的余地。缺口处落一枚烫金点——它不是装饰，它是<b>"钥匙"</b>本身，对应产品的英文名 KeyMind。<br/><br/>留白占六成以上，笔的起收有轻重变化；在 favicon 尺寸依然是一枚"带金缺口的墨圆"，足够辨识。禅意是外衣，承载的是 <b>"更可信、更清醒"</b> 的 Agent 承诺。</p>
+    <dl>
+      <dt>形态</dt><dd>290° 墨笔弧 + 细尾 + 金点</dd>
+      <dt>主色</dt><dd>墨 (#3A2F22 / currentColor) · 烫金 #B08A3E</dd>
+      <dt>viewBox</dt><dd>0 0 100 100 · 单色体系，可换色</dd>
+      <dt>可用尺寸</dt><dd>16px 至 1024px 均保持辨识</dd>
+    </dl>
+  </div>
+</section>
+
+<!-- LOCKUPS -->
+<section>
+  <h2>Lockups 锁定组合</h2>
+  <div class="lockups">
+    <div class="lock">
+      <span class="tag">Mark only</span>
+      <div class="mark solo"><svg viewBox="0 0 100 100"><use href="#enso"/></svg></div>
+    </div>
+    <div class="lock">
+      <span class="tag">Mark + 中文</span>
+      <div class="mark"><svg viewBox="0 0 100 100"><use href="#enso"/></svg><span class="cn">知命</span></div>
+    </div>
+    <div class="lock">
+      <span class="tag">Mark + English</span>
+      <div class="mark"><svg viewBox="0 0 100 100"><use href="#enso"/></svg><span class="en">KeyMind</span></div>
+    </div>
+    <div class="lock">
+      <span class="tag">Stacked Full</span>
+      <div class="mark stacked">
+        <svg viewBox="0 0 100 100" style="width:58px;height:58px"><use href="#enso"/></svg>
+        <div class="wordmark">
+          <span class="cn">知命</span>
+          <span class="en">KeyMind</span>
+        </div>
+      </div>
+    </div>
+    <div class="lock dark">
+      <span class="tag">Reversed · 夜版</span>
+      <div class="mark"><svg viewBox="0 0 100 100"><use href="#enso"/></svg><span class="cn">知命</span></div>
+    </div>
+    <div class="lock">
+      <span class="tag">Monogram · 印章</span>
+      <div class="mark">
+        <div style="position:relative; width:72px; height:72px;">
+          <svg viewBox="0 0 100 100" style="width:100%;height:100%"><use href="#enso"/></svg>
+          <span style="position:absolute; inset:0; display:grid; place-items:center; font-family:'Noto Serif SC',serif; font-size:12px; color:var(--ink); font-weight:600; letter-spacing:.04em; padding-left:6px">知命</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SCALE -->
+<section>
+  <h2>Scale 多尺寸</h2>
+  <div class="scales">
+    <div class="tile"><span class="box b16"><svg viewBox="0 0 100 100"><use href="#enso"/></svg></span><span class="label">16px</span></div>
+    <div class="tile"><span class="box b24"><svg viewBox="0 0 100 100"><use href="#enso"/></svg></span><span class="label">24px</span></div>
+    <div class="tile"><span class="box b32"><svg viewBox="0 0 100 100"><use href="#enso"/></svg></span><span class="label">32px</span></div>
+    <div class="tile"><span class="box b48"><svg viewBox="0 0 100 100"><use href="#enso"/></svg></span><span class="label">48px</span></div>
+    <div class="tile"><span class="box b64"><svg viewBox="0 0 100 100"><use href="#enso"/></svg></span><span class="label">64px</span></div>
+    <div class="tile"><span class="box b96"><svg viewBox="0 0 100 100"><use href="#enso"/></svg></span><span class="label">96px</span></div>
+    <div class="tile"><span class="box b128"><svg viewBox="0 0 100 100"><use href="#enso"/></svg></span><span class="label">128px</span></div>
+  </div>
+</section>
+
+<!-- COLOR VARIANTS -->
+<section>
+  <h2>Color 色彩变体</h2>
+  <div class="variants-row">
+    <div class="vbox paper"><span class="tag">宣纸 主色</span><svg viewBox="0 0 100 100"><use href="#enso"/></svg></div>
+    <div class="vbox ink"><span class="tag">玄夜 反色</span><svg viewBox="0 0 100 100"><use href="#enso"/></svg></div>
+    <div class="vbox paper-mono"><span class="tag">单色 墨</span><svg viewBox="0 0 100 100"><use href="#enso-mono"/></svg></div>
+    <div class="vbox cinnabar"><span class="tag">印章 朱砂</span><svg viewBox="0 0 100 100"><use href="#enso-mono"/></svg></div>
+  </div>
+</section>
+
+<!-- CONTEXT -->
+<section>
+  <h2>Context 场景预览</h2>
+  <div class="contexts">
+    <div class="ctx">
+      <h4>Browser Tab · Favicon</h4>
+      <div class="tab-mock">
+        <div class="tab-bar">
+          <span class="tab-dot r"></span><span class="tab-dot y"></span><span class="tab-dot g"></span>
+          <span class="tab-pill">
+            <svg viewBox="0 0 100 100"><use href="#enso"/></svg>
+            知命 KeyMind · AI 命理 Agent
+          </span>
+        </div>
+        <div class="tab-body" style="font-family:'Noto Serif SC',serif; font-size:13px; color:var(--ink-soft)">欢迎回来，让我来看看你此刻来的理由……</div>
+      </div>
+    </div>
+    <div class="ctx">
+      <h4>App Icon · iOS</h4>
+      <div class="app-icon"><svg viewBox="0 0 100 100"><use href="#enso"/></svg></div>
+    </div>
+    <div class="ctx">
+      <h4>App Icon · 夜版</h4>
+      <div class="app-icon app-icon-dark"><svg viewBox="0 0 100 100"><use href="#enso"/></svg></div>
+    </div>
+    <div class="ctx">
+      <h4>Business Card · 名片</h4>
+      <div class="card-mock">
+        <div class="top">
+          <svg viewBox="0 0 100 100"><use href="#enso"/></svg>
+          <span class="cn serif">知命</span>
+          <span class="en">KeyMind</span>
+        </div>
+        <div class="bottom">AI 命理 Agent · 看见你之所以为你</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div>SVG 源文件：<code>logo-design/svg/chosen-enso.svg</code></div>
+  <div>© 知命 KeyMind Agent</div>
+</footer>
+
+</div>
+
+<!-- Symbols -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- Two-tone (with gilt) -->
+    <symbol id="enso" viewBox="0 0 100 100">
+      <g fill="none" stroke="currentColor" stroke-linecap="round">
+        <path d="M 72 23 A 34 34 0 1 0 75 76" stroke-width="5"/>
+        <path d="M 75 76 A 34 34 0 0 0 80 68" stroke-width="2.5" opacity="0.55"/>
+      </g>
+      <circle class="gold-dot" cx="82" cy="30" r="4" fill="#B08A3E"/>
+    </symbol>
+    <!-- Monochrome fallback (single color) -->
+    <symbol id="enso-mono" viewBox="0 0 100 100">
+      <g fill="none" stroke="currentColor" stroke-linecap="round">
+        <path d="M 72 23 A 34 34 0 1 0 75 76" stroke-width="5"/>
+        <path d="M 75 76 A 34 34 0 0 0 80 68" stroke-width="2.5" opacity="0.55"/>
+      </g>
+      <circle cx="82" cy="30" r="4" fill="currentColor"/>
+    </symbol>
+  </defs>
+</svg>
+
+<script>
+  const light = document.getElementById('mode-light');
+  const dark = document.getElementById('mode-dark');
+  function setMode(m){
+    document.documentElement.classList.toggle('dark', m === 'dark');
+    light.setAttribute('aria-pressed', m === 'light');
+    dark.setAttribute('aria-pressed', m === 'dark');
+  }
+  light.addEventListener('click', () => setMode('light'));
+  dark.addEventListener('click', () => setMode('dark'));
+</script>
+</body>
+</html>
