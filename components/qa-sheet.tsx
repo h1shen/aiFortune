@@ -13,10 +13,12 @@ export function QaSheet({
   chartId,
   open,
   onOpenChange,
+  initial,
 }: {
   chartId: string
   open: boolean
   onOpenChange: (o: boolean) => void
+  initial?: { q: string; nonce: number }
 }) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -31,7 +33,7 @@ export function QaSheet({
           </SheetDescription>
         </SheetHeader>
         <div className="flex-1 overflow-hidden">
-          <QaChat chartId={chartId} />
+          <QaChat chartId={chartId} initial={initial} />
         </div>
       </SheetContent>
     </Sheet>

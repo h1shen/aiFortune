@@ -16,8 +16,14 @@ const SUGGESTIONS = [
 
 type ChatTurn = ChatMessage & { streaming?: boolean }
 
-/** 来意预测卡：3 张子卡，边流式边解析；点击底部按钮触发 onOpenChat 打开抽屉问答 */
-export function LaiyiCard({ chartId, onOpenChat }: { chartId: string; onOpenChat: () => void }) {
+/** 来意预测卡：3 张子卡，边流式边解析；点击任一问题立即拉起 QA 抽屉并发送；底部按钮打开空白抽屉 */
+export function LaiyiCard({
+  chartId,
+  onOpenChat,
+}: {
+  chartId: string
+  onOpenChat: (question?: string) => void
+}) {
   const [laiyi, setLaiyi] = useState("")
   const [busy, setBusy] = useState(true)
 
@@ -60,16 +66,19 @@ export function LaiyiCard({ chartId, onOpenChat }: { chartId: string; onOpenChat
         )}
         {slots.map((it, i) =>
           it ? (
-            <div
+            <button
               key={i}
-              className="rounded-sm border border-accent/20 bg-[oklch(0.97_0.008_85/0.5)] px-3.5 py-3"
+              type="button"
+              onClick={() => onOpenChat(it.q)}
+              className="group w-full rounded-sm border border-accent/20 bg-[oklch(0.97_0.008_85/0.5)] px-3.5 py-3 text-left transition-colors hover:border-accent/60 hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+              aria-label={`向玄机提问：${it.q}`}
             >
               <div className="text-[10px] tracking-[0.1em] text-accent">{it.topic}</div>
               <div className="mt-1 font-serif text-sm font-medium text-foreground">💭 {it.q}</div>
               <div className="mt-1.5 font-serif text-[11px] leading-[1.6] text-muted-foreground">
                 原因：{it.reason}
               </div>
-            </div>
+            </button>
           ) : (
             <div
               key={i}
@@ -86,7 +95,7 @@ export function LaiyiCard({ chartId, onOpenChat }: { chartId: string; onOpenChat
 
       <button
         type="button"
-        onClick={onOpenChat}
+        onClick={() => onOpenChat()}
         className="mt-4 w-full rounded-full border border-transparent bg-primary px-4 py-2.5 font-serif text-sm text-primary-foreground transition-opacity hover:opacity-90"
       >
         追问玄机 →
@@ -95,12 +104,21 @@ export function LaiyiCard({ chartId, onOpenChat }: { chartId: string; onOpenChat
   )
 }
 
-/** 自由问答 chat 面板；在 Sheet 内使用，占满容器高度，无外层边框 */
-export function QaChat({ chartId }: { chartId: string }) {
+/** 自由问答 chat 面板；在 Sheet 内使用，占满容器高度，无外层边框。
+ *  initial?: 父组件传来的"一点即问"初始提问；用 nonce 触发每一次点击都生效。 */
+export function QaChat({
+  chartId,
+  initial,
+}: {
+  chartId: string
+  initial?: { q: string; nonce: number }
+}) {
   const [chat, setChat] = useState<ChatTurn[]>([])
   const [input, setInput] = useState("")
   const [busy, setBusy] = useState(false)
   const scrollerRef = useRef<HTMLDivElement>(null)
+  const busyRef = useRef(false)
+  busyRef.current = busy
 
   useEffect(() => {
     scrollerRef.current?.scrollTo({ top: scrollerRef.current.scrollHeight, behavior: "smooth" })
@@ -145,6 +163,21 @@ export function QaChat({ chartId }: { chartId: string }) {
       },
     )
   }
+
+  // Latest sendMessage via ref so the auto-send effect only depends on nonce.
+  const sendRef = useRef(sendMessage)
+  sendRef.current = sendMessage
+
+  // 一点即问：父组件 initial.nonce 一变就自动把问题送出去。
+  const lastSentNonceRef = useRef<number | null>(null)
+  useEffect(() => {
+    if (!initial || !initial.q) return
+    if (lastSentNonceRef.current === initial.nonce) return
+    lastSentNonceRef.current = initial.nonce
+    // 若正有请求进行中，先不打断——下次点击会再触发。
+    if (busyRef.current) return
+    sendRef.current(initial.q)
+  }, [initial?.nonce, initial?.q, initial])
 
   return (
     <div className="flex h-full flex-col">
