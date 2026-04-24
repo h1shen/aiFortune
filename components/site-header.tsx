@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Menu, X } from "lucide-react"
+import { BrandMark } from "@/components/brand-mark"
 
 const navItems = [
   { label: "命盘测算", href: "#calculator" },
@@ -21,10 +22,10 @@ export function SiteHeader() {
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 md:px-8">
         <Link href="/" className="flex items-center gap-2.5">
           <span
-            className="flex h-9 w-9 items-center justify-center rounded-sm bg-primary font-serif text-lg font-semibold text-primary-foreground"
+            className="flex h-9 w-9 items-center justify-center rounded-sm border border-border/60 bg-card text-foreground"
             aria-hidden
           >
-            知
+            <BrandMark className="h-6 w-6" />
           </span>
           <div className="flex flex-col leading-none">
             <span className="font-serif text-lg font-semibold tracking-wider text-foreground">Keymind 知命</span>

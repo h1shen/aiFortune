@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>知命 KeyMind · Logo 方案集</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Noto+Serif+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: oklch(0.975 0.008 85);
+    --paper-2: oklch(0.955 0.012 82);
+    --ink: oklch(0.22 0.015 50);
+    --ink-soft: oklch(0.48 0.02 60);
+    --gilt: #B08A3E;
+    --line: oklch(0.88 0.015 75);
+    --cinnabar: oklch(0.52 0.17 28);
+  }
+  html.dark{
+    --paper: oklch(0.17 0.015 260);
+    --paper-2: oklch(0.2 0.018 260);
+    --ink: oklch(0.94 0.012 80);
+    --ink-soft: oklch(0.68 0.015 75);
+    --line: oklch(0.3 0.02 260);
+    --gilt: #D4AE65;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Inter', system-ui, sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 2px, color-mix(in oklch, var(--ink) 2%, transparent) 2px, color-mix(in oklch, var(--ink) 2%, transparent) 3px),
+      radial-gradient(circle at 20% 10%, color-mix(in oklch, var(--gilt) 10%, transparent) 0, transparent 40%),
+      radial-gradient(circle at 80% 90%, color-mix(in oklch, var(--cinnabar) 5%, transparent) 0, transparent 45%);
+    background-attachment: fixed;
+    min-height:100vh;
+  }
+  .serif{font-family:'Noto Serif SC', serif; letter-spacing:.02em}
+  header{
+    max-width:1180px; margin:0 auto; padding:56px 32px 24px;
+    display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap;
+  }
+  h1{margin:0; font-size:34px; font-weight:500}
+  h1 .en{font-family:'Inter',sans-serif; font-weight:300; color:var(--ink-soft); margin-left:14px; font-size:22px; letter-spacing:.06em}
+  .sub{color:var(--ink-soft); margin-top:6px; font-size:14px; letter-spacing:.04em; max-width:680px; line-height:1.65}
+  .toolbar{display:flex; gap:8px; align-items:center}
+  .btn{
+    font: 500 12px/1 'Inter', sans-serif; letter-spacing:.08em; text-transform:uppercase;
+    padding:10px 14px; border:1px solid var(--line); border-radius:999px;
+    background:transparent; color:var(--ink); cursor:pointer; transition:.2s;
+  }
+  .btn:hover{background:color-mix(in oklch, var(--ink) 6%, transparent)}
+  .btn[aria-pressed="true"]{background:var(--ink); color:var(--paper); border-color:var(--ink)}
+  .divider{
+    max-width:1180px; margin:0 auto;
+    height:1px;
+    background-image:linear-gradient(to right, transparent 0%, color-mix(in oklch, var(--ink) 30%, transparent) 20%, color-mix(in oklch, var(--ink) 50%, transparent) 50%, color-mix(in oklch, var(--ink) 30%, transparent) 80%, transparent 100%);
+  }
+  .grid{
+    max-width:1180px; margin:0 auto; padding:40px 32px 32px;
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(330px, 1fr)); gap:28px;
+  }
+  .card{
+    background:var(--paper-2);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:28px 28px 24px;
+    transition:transform .3s ease, box-shadow .3s ease;
+    display:flex; flex-direction:column; gap:20px;
+  }
+  .card:hover{ transform:translateY(-3px); box-shadow: 0 16px 40px -24px color-mix(in oklch, var(--ink) 55%, transparent); }
+  .stage{
+    aspect-ratio: 1 / 1;
+    border:1px dashed color-mix(in oklch, var(--ink) 15%, transparent);
+    border-radius:14px;
+    display:grid; place-items:center;
+    color:var(--ink);
+    position:relative; overflow:hidden;
+    background:
+      radial-gradient(circle at 50% 50%, color-mix(in oklch, var(--paper) 100%, transparent) 0%, var(--paper-2) 80%);
+  }
+  .stage svg{width:58%; height:58%; display:block}
+  .num{
+    position:absolute; top:14px; left:16px;
+    font: 300 11px 'Inter',sans-serif; letter-spacing:.24em; color:var(--ink-soft);
+  }
+  .product-hint{
+    position:absolute; bottom:14px; right:16px;
+    font: 500 10px 'Inter',sans-serif; letter-spacing:.22em; color:var(--gilt); text-transform:uppercase;
+    opacity:.7;
+  }
+  .scale-row{
+    display:flex; align-items:center; gap:18px;
+    padding-top:6px; border-top:1px solid var(--line);
+  }
+  .scale{display:flex; align-items:center; gap:8px}
+  .scale .box{display:grid; place-items:center; background:var(--paper); border-radius:8px; border:1px solid var(--line)}
+  .scale svg{width:80%; height:80%}
+  .scale .box.s16{width:22px; height:22px; border-radius:5px}
+  .scale .box.s32{width:36px; height:36px; border-radius:7px}
+  .scale .box.s64{width:56px; height:56px; border-radius:10px}
+  .scale .label{font-size:10px; letter-spacing:.2em; color:var(--ink-soft); text-transform:uppercase}
+  .meta{
+    display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;
+  }
+  .meta .cn{font-size:22px; font-weight:500; font-family:'Noto Serif SC', serif; letter-spacing:.04em}
+  .meta .en{font-size:12px; letter-spacing:.2em; color:var(--ink-soft); text-transform:uppercase}
+  p.rationale{margin:0; color:color-mix(in oklch, var(--ink) 85%, transparent); font-size:13.5px; line-height:1.7}
+  .tag{font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--gilt); font-weight:500}
+  .maps-to{font-size:11px; color:var(--ink-soft); margin-top:4px}
+  .maps-to b{color:var(--ink); font-weight:500}
+  footer{
+    max-width:1180px; margin:0 auto; padding:18px 32px 60px;
+    display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;
+    color:var(--ink-soft); font-size:12px; letter-spacing:.04em;
+  }
+  footer a{color:var(--ink-soft); text-decoration:none; border-bottom:1px dotted var(--ink-soft)}
+  .swatches{display:flex; gap:6px; align-items:center}
+  .sw{width:14px; height:14px; border-radius:999px; border:1px solid var(--line)}
+  .sw.paper{background:oklch(0.975 0.008 85)}
+  .sw.ink{background:oklch(0.22 0.015 50)}
+  .sw.gilt{background:#B08A3E}
+  .sw.cinnabar{background:oklch(0.52 0.17 28)}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1 class="serif">知命<span class="en">KeyMind Agent — Identity Explorations</span></h1>
+    <div class="sub">六个独立方向，每一个都直接指向产品的一个「硬信号」：人生 K 线、KeyMind 之名、三盘合一、此刻起卦、五行命主、Agent 之眼。墨为体，烫金为眼。</div>
+  </div>
+  <div class="toolbar">
+    <div class="swatches" aria-hidden="true" style="margin-right:10px">
+      <span class="sw paper" title="宣纸"></span>
+      <span class="sw ink" title="墨"></span>
+      <span class="sw gilt" title="烫金"></span>
+      <span class="sw cinnabar" title="朱砂"></span>
+    </div>
+    <button class="btn" id="mode-light" aria-pressed="true">宣纸 Light</button>
+    <button class="btn" id="mode-dark" aria-pressed="false">玄夜 Dark</button>
+  </div>
+</header>
+<div class="divider"></div>
+
+<main class="grid" id="grid"></main>
+
+<footer>
+  <div>六枚方案各自独立，不是同一想法的微调 · SVG 源文件位于 <code>logo-design/svg/</code></div>
+  <div>© 知命 KeyMind Agent</div>
+</footer>
+
+<!-- SVG symbols (hidden) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- 01 人生K线 -->
+    <symbol id="logo-1" viewBox="0 0 100 100">
+      <g fill="currentColor" stroke="currentColor" stroke-linecap="round">
+        <line x1="25" y1="34" x2="25" y2="46" stroke-width="1.8"/>
+        <rect x="21" y="46" width="8" height="18" rx="1" fill="none" stroke-width="2"/>
+        <line x1="25" y1="64" x2="25" y2="72" stroke-width="1.8"/>
+        <line x1="75" y1="40" x2="75" y2="52" stroke-width="1.8"/>
+        <rect x="71" y="52" width="8" height="16" rx="1"/>
+        <line x1="75" y1="68" x2="75" y2="74" stroke-width="1.8"/>
+      </g>
+      <g>
+        <line x1="50" y1="16" x2="50" y2="26" stroke="var(--gilt)" stroke-width="2.2" stroke-linecap="round"/>
+        <rect x="45" y="26" width="10" height="48" rx="1.4" fill="var(--gilt)"/>
+        <line x1="50" y1="74" x2="50" y2="84" stroke="var(--gilt)" stroke-width="2.2" stroke-linecap="round"/>
+      </g>
+    </symbol>
+
+    <!-- 02 KeyMind -->
+    <symbol id="logo-2" viewBox="0 0 100 100">
+      <circle cx="32" cy="50" r="18" fill="none" stroke="currentColor" stroke-width="4"/>
+      <circle cx="32" cy="50" r="3.8" fill="var(--gilt)"/>
+      <line x1="50" y1="50" x2="84" y2="50" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+      <line x1="72" y1="50" x2="72" y2="60" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+      <line x1="80" y1="50" x2="80" y2="58" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+    </symbol>
+
+    <!-- 03 三盘合一 -->
+    <symbol id="logo-3" viewBox="0 0 100 100">
+      <g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+        <circle cx="38" cy="42" r="22"/>
+        <circle cx="62" cy="42" r="22"/>
+        <circle cx="50" cy="64" r="22"/>
+      </g>
+      <circle cx="50" cy="49.33" r="5" fill="var(--gilt)"/>
+    </symbol>
+
+    <!-- 04 时间 · 此刻 -->
+    <symbol id="logo-4" viewBox="0 0 100 100">
+      <line x1="14" y1="50" x2="86" y2="50" stroke="currentColor" stroke-width="1" opacity="0.35"/>
+      <g fill="currentColor">
+        <circle cx="18" cy="50" r="2" opacity="0.45"/>
+        <circle cx="30" cy="50" r="2.6" opacity="0.7"/>
+        <circle cx="40" cy="50" r="3.2"/>
+        <circle cx="60" cy="50" r="3.2"/>
+        <circle cx="72" cy="50" r="2.6" opacity="0.7"/>
+        <circle cx="84" cy="50" r="2" opacity="0.45"/>
+      </g>
+      <line x1="50" y1="22" x2="50" y2="44" stroke="var(--gilt)" stroke-width="1.4" stroke-linecap="round" opacity="0.8"/>
+      <circle cx="50" cy="50" r="5.8" fill="var(--gilt)"/>
+      <line x1="50" y1="56" x2="50" y2="78" stroke="var(--gilt)" stroke-width="1.4" stroke-linecap="round" opacity="0.5"/>
+    </symbol>
+
+    <!-- 05 五行星图 -->
+    <symbol id="logo-5" viewBox="0 0 100 100">
+      <polygon points="50,18 68.78,75.9 19.58,40.1 80.42,40.1 31.22,75.9"
+               fill="none" stroke="currentColor" stroke-width="1" opacity="0.28"/>
+      <polygon points="50,18 80.42,40.1 68.78,75.9 31.22,75.9 19.58,40.1"
+               fill="none" stroke="currentColor" stroke-width="1.2" opacity="0.55"/>
+      <g fill="currentColor">
+        <circle cx="50" cy="18" r="3.8"/>
+        <circle cx="80.42" cy="40.1" r="3.6"/>
+        <circle cx="68.78" cy="75.9" r="3.6"/>
+        <circle cx="31.22" cy="75.9" r="3.6"/>
+        <circle cx="19.58" cy="40.1" r="3.6"/>
+      </g>
+      <circle cx="50" cy="50" r="5.5" fill="var(--gilt)"/>
+    </symbol>
+
+    <!-- 06 命眼 -->
+    <symbol id="logo-6" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="32" fill="none" stroke="currentColor" stroke-width="2"/>
+      <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M 50 22 Q 70 50, 50 78"/>
+        <path d="M 50 22 Q 30 50, 50 78"/>
+        <path d="M 22 50 Q 50 30, 78 50"/>
+        <path d="M 22 50 Q 50 70, 78 50"/>
+      </g>
+      <circle cx="50" cy="50" r="5.2" fill="var(--gilt)"/>
+    </symbol>
+  </defs>
+</svg>
+
+<script>
+  const variants = [
+    {
+      n: "01",
+      cn: "人生 K 线",
+      en: "Life Candlestick",
+      tag: "Product feature · K线图",
+      hint: "K-line",
+      desc: "把产品的核心输出直接图腾化：三根蜡烛，左右两根代表过往起伏，中间那根金色实体撑满画面 —— 就是「此刻」的关键节点。最独占、最不可替代，一看就是「知命」。",
+      maps: "→ 人生 K 线交付形式 · 大运走向",
+    },
+    {
+      n: "02",
+      cn: "KeyMind 钥匙",
+      en: "Key & Mind",
+      tag: "Name play · 产品名直译",
+      hint: "KeyMind",
+      desc: "钥匙环是一枚眼睛的虹膜（Mind），钥齿是解开命理的齿（Key）。直白、好记、英文中文双命中；在 app icon 层面识别度最高。",
+      maps: "→ 产品名 KeyMind · 解开你之所以为你",
+    },
+    {
+      n: "03",
+      cn: "三盘合一",
+      en: "Trinity Chart",
+      tag: "Methodology · 三大术数",
+      hint: "Trinity",
+      desc: "三个等大圆交叠 —— 紫微斗数（看格局）、八字（看五行）、奇门遁甲（看此刻）；金点落在三圆公共交集 = Agent 给出的答案。清晰地告诉用户「我们为什么更准」。",
+      maps: "→ 紫微 · 八字 · 奇门三技能栈",
+    },
+    {
+      n: "04",
+      cn: "此刻",
+      en: "Beacon of Now",
+      tag: "Time axis · 当下起卦",
+      hint: "Now",
+      desc: "一条命运长轴，左右皆命中的节点；中央金色大点与上下光柱 = 「你此刻来的理由」。极简、时间感强，天然匹配 Agent 的等待光标。",
+      maps: "→ 奇门遁甲以当下起卦 · 预测父母为何而来",
+    },
+    {
+      n: "05",
+      cn: "五行星图",
+      en: "Five Elements",
+      tag: "Cosmology · 五行生克",
+      hint: "Wu Xing",
+      desc: "外圈五边形 = 相生，内部五芒星 = 相克；五个墨点 = 木火土金水，中央金点 = 命主。玄学正统感最强，同时结构现代，放在食谱/汤方页面毫无违和。",
+      maps: "→ 五行强弱 · 食疗汤方 · 疾病预防",
+    },
+    {
+      n: "06",
+      cn: "命眼",
+      en: "Fate Aperture",
+      tag: "Promise · Agent 之眼",
+      hint: "See",
+      desc: "瞳孔/光圈/花朵三义合一：四瓣经线汇入金色瞳心 = Agent「看穿却不窥探」。最抽象，也最能承载「私密、清醒、公正」的反算命师气质。",
+      maps: "→ 看穿命理 · 更可信的私密解读",
+    },
+  ];
+
+  const grid = document.getElementById('grid');
+  grid.innerHTML = variants.map((v, i) => {
+    const id = `#logo-${i+1}`;
+    return `
+      <article class="card" data-idx="${i+1}">
+        <div class="stage">
+          <span class="num">${v.n}</span>
+          <span class="product-hint">${v.hint}</span>
+          <svg><use href="${id}"/></svg>
+        </div>
+        <div>
+          <div class="meta">
+            <span class="cn">${v.cn}</span>
+            <span class="en">${v.en}</span>
+          </div>
+          <div class="tag" style="margin:6px 0 12px">${v.tag}</div>
+          <p class="rationale">${v.desc}</p>
+          <div class="maps-to">${v.maps}</div>
+        </div>
+        <div class="scale-row" aria-label="多尺寸预览">
+          <span class="label">Scale</span>
+          <span class="scale"><span class="box s16"><svg><use href="${id}"/></svg></span></span>
+          <span class="scale"><span class="box s32"><svg><use href="${id}"/></svg></span></span>
+          <span class="scale"><span class="box s64"><svg><use href="${id}"/></svg></span></span>
+        </div>
+      </article>
+    `;
+  }).join('');
+
+  const light = document.getElementById('mode-light');
+  const dark = document.getElementById('mode-dark');
+  function setMode(m){
+    document.documentElement.classList.toggle('dark', m === 'dark');
+    light.setAttribute('aria-pressed', m === 'light');
+    dark.setAttribute('aria-pressed', m === 'dark');
+  }
+  light.addEventListener('click', () => setMode('light'));
+  dark.addEventListener('click', () => setMode('dark'));
+</script>
+</body>
+</html>

@@ -30,6 +30,10 @@ def chat_stream(req: ChatRequest):
         messages = prompts.reading_messages(chart)
     elif req.mode == "laiyi":
         messages = prompts.laiyi_messages(chart)
+    elif req.mode == "reading_section":
+        if not req.section:
+            raise HTTPException(status_code=400, detail="reading_section 必须提供 section")
+        messages = prompts.reading_section_messages(chart, req.section)
     else:  # qa
         history = [m.model_dump() for m in req.messages]
         messages = prompts.qa_messages(chart, history)

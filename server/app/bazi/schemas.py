@@ -48,6 +48,22 @@ class DaYun(BaseModel):
     tenGod: str
 
 
+class LifeCandle(BaseModel):
+    ganzhi: str
+    startYear: Optional[int] = None
+    endYear: Optional[int] = None
+    startAge: Optional[int] = None
+    tenGod: str
+    state: Literal["past", "current", "future"]
+    open: int
+    close: int
+    high: int
+    low: int
+    up: bool
+    score: int
+    drivers: list[str] = []
+
+
 class CalculateResponse(BaseModel):
     chartId: str
     name: str
@@ -71,6 +87,7 @@ class CalculateResponse(BaseModel):
     currentDayun: Optional[DaYun]
     currentYear: int
     currentLiunian: str
+    lifeCurve: list[LifeCandle] = []
 
 
 class ChatMessage(BaseModel):
@@ -80,5 +97,6 @@ class ChatMessage(BaseModel):
 
 class ChatRequest(BaseModel):
     chartId: str
-    mode: Literal["reading", "laiyi", "qa"] = "qa"
+    mode: Literal["reading", "laiyi", "qa", "reading_section"] = "qa"
+    section: Optional[str] = None
     messages: list[ChatMessage] = []

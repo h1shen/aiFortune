@@ -93,6 +93,33 @@ def laiyi_messages(chart: dict[str, Any]) -> list[dict]:
     return [{"role": "system", "content": SYSTEM_BASE}, {"role": "user", "content": user}]
 
 
+READING_SECTION_TITLES = {
+    "personality": "性格底色",
+    "framework":   "人生格局",
+    "dayun":       "大运轨迹",
+    "elements":    "五行建议",
+    "keydates":    "近期关键节点",
+    "summary":     "一句话总结",
+}
+
+
+def reading_section_messages(chart: dict[str, Any], section_key: str) -> list[dict]:
+    """签文体再解读。4 行、7-9 字/行、押韵对仗、文白交错、不要任何前言后语或引号。"""
+    title = READING_SECTION_TITLES.get(section_key, "再签")
+    user = f"""你是玄机阁签官。基于下面命盘，就"{title}"这一项再起一签，换一个角度下笔。
+
+{_chart_summary(chart)}
+
+【格式要求 · 严格遵守】
+- 恰好 4 行
+- 每行 7 到 9 个汉字
+- 押韵或对仗
+- 文白交错，古意+现代并重
+- 不要任何前言、后语、引号、序号、Markdown 标记
+- 不要输出标题和项目名"""
+    return [{"role": "system", "content": SYSTEM_BASE}, {"role": "user", "content": user}]
+
+
 def qa_messages(chart: dict[str, Any], history: list[dict]) -> list[dict]:
     """自由问答：system 塞满命盘，后面跟用户历史对话。"""
     system = f"""{SYSTEM_BASE}

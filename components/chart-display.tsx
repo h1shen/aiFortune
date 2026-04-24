@@ -149,31 +149,3 @@ export function FiveElementsCard({ chart }: { chart: Chart }) {
   )
 }
 
-export function DaYunTimeline({ chart }: { chart: Chart }) {
-  return (
-    <div className="rounded-md border border-border bg-card p-6 shadow-[0_20px_50px_-25px_rgba(20,25,45,0.25)] md:p-8">
-      <div className="mb-5">
-        <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Da Yun</p>
-        <h3 className="mt-1 font-serif text-2xl font-semibold text-foreground">大运时间轴</h3>
-      </div>
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-8">
-        {chart.dayun.map((dy) => {
-          const isCurrent = chart.currentDayun && dy.startYear === chart.currentDayun.startYear
-          return (
-            <div
-              key={dy.startYear}
-              className={`rounded-sm border p-3 text-center transition-colors ${
-                isCurrent ? "border-accent bg-accent/10" : "border-border bg-background/50"
-              }`}
-            >
-              <p className="text-[10px] text-muted-foreground">{dy.startYear} – {dy.endYear}</p>
-              <p className="my-1 font-serif text-2xl font-semibold text-foreground">{dy.ganzhi}</p>
-              <p className="text-[10px] text-muted-foreground">{dy.startAge} 岁起运</p>
-              <p className="mt-1 font-serif text-[11px] text-accent">{dy.tenGod}</p>
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}

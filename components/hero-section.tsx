@@ -60,7 +60,7 @@ export function HeroSection() {
         <div id="calculator" className="relative">
           <div
             aria-hidden
-            className="absolute -inset-4 rounded-lg bg-gradient-to-br from-accent/20 via-transparent to-destructive/10 blur-2xl"
+            className="pointer-events-none absolute -inset-4 rounded-lg bg-gradient-to-br from-accent/20 via-transparent to-destructive/10 blur-2xl"
           />
           <BaziForm />
         </div>

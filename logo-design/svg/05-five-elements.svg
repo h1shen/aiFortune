@@ -1,0 +1,20 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- 05 五行命盘 — 木火土金水五点 + 金色命主
+       外五芒连 = 相生；内五芒星 = 相克 -->
+  <!-- Star (相克): skip-one pentagram -->
+  <polygon points="50,18 68.78,75.9 19.58,40.1 80.42,40.1 31.22,75.9"
+           fill="none" stroke="currentColor" stroke-width="1" opacity="0.28"/>
+  <!-- Pentagon (相生) -->
+  <polygon points="50,18 80.42,40.1 68.78,75.9 31.22,75.9 19.58,40.1"
+           fill="none" stroke="currentColor" stroke-width="1.2" opacity="0.55"/>
+  <!-- Element nodes -->
+  <g fill="currentColor">
+    <circle cx="50" cy="18" r="3.8"/>
+    <circle cx="80.42" cy="40.1" r="3.6"/>
+    <circle cx="68.78" cy="75.9" r="3.6"/>
+    <circle cx="31.22" cy="75.9" r="3.6"/>
+    <circle cx="19.58" cy="40.1" r="3.6"/>
+  </g>
+  <!-- 命主 gold center -->
+  <circle cx="50" cy="50" r="5.5" fill="#B08A3E"/>
+</svg>

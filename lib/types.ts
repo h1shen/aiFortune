@@ -1,6 +1,13 @@
 export type Gender = "male" | "female"
 export type CalendarType = "solar" | "lunar"
-export type ChatMode = "reading" | "laiyi" | "qa"
+export type ChatMode = "reading" | "laiyi" | "qa" | "reading_section"
+export type ReadingSectionKey =
+  | "personality"
+  | "framework"
+  | "dayun"
+  | "elements"
+  | "keydates"
+  | "summary"
 
 export interface Location {
   province?: string
@@ -48,6 +55,22 @@ export interface DaYun {
   tenGod: string
 }
 
+export interface LifeCandle {
+  ganzhi: string
+  startYear: number | null
+  endYear: number | null
+  startAge: number | null
+  tenGod: string
+  state: "past" | "current" | "future"
+  open: number
+  close: number
+  high: number
+  low: number
+  up: boolean
+  score: number
+  drivers: string[]
+}
+
 export interface Chart {
   chartId: string
   name: string
@@ -70,6 +93,7 @@ export interface Chart {
   currentDayun: DaYun | null
   currentYear: number
   currentLiunian: string
+  lifeCurve: LifeCandle[]
 }
 
 export interface ChatMessage {
@@ -80,5 +104,6 @@ export interface ChatMessage {
 export interface ChatRequest {
   chartId: string
   mode: ChatMode
+  section?: ReadingSectionKey
   messages?: ChatMessage[]
 }
