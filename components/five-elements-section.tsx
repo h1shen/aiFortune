@@ -98,7 +98,7 @@ export function FiveElementsSection() {
             <div className="absolute inset-6 rounded-full border border-dashed border-accent/30" />
             <div className="absolute inset-1/2 flex h-28 w-28 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-accent bg-background text-center">
               <div>
-                <p className="font-serif text-3xl font-semibold text-accent">玄</p>
+                <p className="font-serif text-3xl font-semibold text-accent">终</p>
                 <p className="text-[10px] tracking-[0.2em] text-muted-foreground">XUAN JI</p>
               </div>
             </div>

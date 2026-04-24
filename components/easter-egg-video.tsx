@@ -4,6 +4,7 @@ import { useState } from "react"
 
 export function EasterEggVideo() {
   const [open, setOpen] = useState(false)
+  const [playing, setPlaying] = useState(false)
 
   return (
     <section
@@ -97,6 +98,19 @@ export function EasterEggVideo() {
           }}
         >
           <div
+            role={playing ? undefined : "button"}
+            tabIndex={playing ? undefined : 0}
+            onClick={playing ? undefined : () => setPlaying(true)}
+            onKeyDown={
+              playing
+                ? undefined
+                : (e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault()
+                      setPlaying(true)
+                    }
+                  }
+            }
             style={{
               position: "relative",
               aspectRatio: "16 / 9",
@@ -108,78 +122,102 @@ export function EasterEggVideo() {
                 "radial-gradient(circle at 30% 30%, oklch(0.32 0.04 50 / 0.6), transparent 55%), radial-gradient(circle at 75% 70%, oklch(0.52 0.17 28 / 0.4), transparent 55%), linear-gradient(135deg, oklch(0.22 0.015 50), oklch(0.18 0.02 260))",
               display: "grid",
               placeItems: "center",
+              cursor: playing ? "default" : "pointer",
             }}
           >
             {/* 纸纹 / 扫描线 */}
-            <div
-              aria-hidden
-              style={{
-                position: "absolute",
-                inset: 0,
-                backgroundImage:
-                  "repeating-linear-gradient(0deg, transparent 0 2px, oklch(0.95 0.012 82 / 0.03) 2px 3px), repeating-linear-gradient(90deg, transparent 0 2px, oklch(0.95 0.012 82 / 0.025) 2px 3px)",
-              }}
-            />
+            {!playing && (
+              <div
+                aria-hidden
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  backgroundImage:
+                    "repeating-linear-gradient(0deg, transparent 0 2px, oklch(0.95 0.012 82 / 0.03) 2px 3px), repeating-linear-gradient(90deg, transparent 0 2px, oklch(0.95 0.012 82 / 0.025) 2px 3px)",
+                }}
+              />
+            )}
 
-            {/* 中央占位 */}
-            <div
-              style={{
-                position: "relative",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 20,
-                color: "oklch(0.96 0.012 82)",
-              }}
-            >
+            {playing ? (
+              <video
+                src="/videos/mingzhiying.mp4"
+                poster="/videos/mingzhiying-poster.jpg"
+                controls
+                autoPlay
+                playsInline
+                preload="auto"
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  background: "black",
+                }}
+              />
+            ) : (
+              /* 中央占位 */
               <div
                 style={{
-                  width: 86,
-                  height: 86,
-                  borderRadius: "50%",
-                  border: "2px solid oklch(0.72 0.12 75 / 0.8)",
-                  display: "grid",
-                  placeItems: "center",
-                  background: "oklch(0.22 0.015 50 / 0.5)",
-                  backdropFilter: "blur(4px)",
-                  WebkitBackdropFilter: "blur(4px)",
+                  position: "relative",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 20,
+                  color: "oklch(0.96 0.012 82)",
                 }}
               >
-                <svg
-                  width="28"
-                  height="32"
-                  viewBox="0 0 28 32"
-                  aria-hidden
+                <div
+                  className="egg-play-circle"
+                  style={{
+                    width: 86,
+                    height: 86,
+                    borderRadius: "50%",
+                    border: "2px solid oklch(0.72 0.12 75 / 0.8)",
+                    display: "grid",
+                    placeItems: "center",
+                    background: "oklch(0.22 0.015 50 / 0.5)",
+                    backdropFilter: "blur(4px)",
+                    WebkitBackdropFilter: "blur(4px)",
+                    transition: "transform .2s ease, filter .2s ease",
+                  }}
                 >
-                  <polygon
-                    points="4,2 26,16 4,30"
-                    fill="oklch(0.72 0.12 75)"
-                  />
-                </svg>
+                  <svg
+                    width="28"
+                    height="32"
+                    viewBox="0 0 28 32"
+                    aria-hidden
+                  >
+                    <polygon
+                      points="4,2 26,16 4,30"
+                      fill="oklch(0.72 0.12 75)"
+                    />
+                  </svg>
+                </div>
+                <div
+                  className="font-serif"
+                  style={{
+                    fontSize: 22,
+                    fontWeight: 600,
+                    letterSpacing: "0.25em",
+                    textAlign: "center",
+                  }}
+                >
+                  命之影 · 片长三分
+                </div>
+                <div
+                  className="font-serif"
+                  style={{
+                    fontSize: 12,
+                    letterSpacing: "0.3em",
+                    color: "oklch(0.85 0.02 80 / 0.7)",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Video Placeholder · Coming Soon
+                </div>
               </div>
-              <div
-                className="font-serif"
-                style={{
-                  fontSize: 22,
-                  fontWeight: 600,
-                  letterSpacing: "0.25em",
-                  textAlign: "center",
-                }}
-              >
-                命之影 · 片长三分
-              </div>
-              <div
-                className="font-serif"
-                style={{
-                  fontSize: 12,
-                  letterSpacing: "0.3em",
-                  color: "oklch(0.85 0.02 80 / 0.7)",
-                  textTransform: "uppercase",
-                }}
-              >
-                Video Placeholder · Coming Soon
-              </div>
-            </div>
+            )}
 
             {/* 四角 L 形装饰 */}
             {(
@@ -209,6 +247,8 @@ export function EasterEggVideo() {
                   borderBottomWidth: pos.bottom != null ? 1.5 : 0,
                   borderLeftWidth: pos.left != null ? 1.5 : 0,
                   borderRightWidth: pos.right != null ? 1.5 : 0,
+                  pointerEvents: "none",
+                  zIndex: 2,
                   ...pos,
                 }}
               />
@@ -226,7 +266,7 @@ export function EasterEggVideo() {
               lineHeight: 1.8,
             }}
           >
-            此段影片尚未冲印 · 以占位先行
+            专属于你的故事
             <br />
             <span
               style={{
@@ -253,6 +293,10 @@ export function EasterEggVideo() {
         @keyframes eggPulse {
           0%, 100% { transform: scale(1); box-shadow: 0 0 0 4px oklch(0.52 0.17 28 / 0.18); }
           50%      { transform: scale(1.15); box-shadow: 0 0 0 8px oklch(0.52 0.17 28 / 0.08); }
+        }
+        .easter-egg-video-section [role="button"]:hover .egg-play-circle {
+          transform: scale(1.06);
+          filter: brightness(1.1);
         }
         @keyframes eggReveal {
           0%   { opacity: 0; transform: translateY(-12px) scale(0.96); filter: blur(6px); }
