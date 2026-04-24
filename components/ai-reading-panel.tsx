@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { Send, Loader2 } from "lucide-react"
 import { streamChat } from "@/lib/api"
-import type { ChatMessage } from "@/lib/types"
+import type { Chart, ChatMessage } from "@/lib/types"
 import { parseLaiyi } from "@/lib/laiyi-parse"
 
 const SUGGESTIONS = [
@@ -17,22 +17,22 @@ const SUGGESTIONS = [
 type ChatTurn = ChatMessage & { streaming?: boolean }
 
 /** 来意预测卡：3 张子卡，边流式边解析；点击底部按钮触发 onOpenChat 打开抽屉问答 */
-export function LaiyiCard({ chartId, onOpenChat }: { chartId: string; onOpenChat: () => void }) {
+export function LaiyiCard({ chart, onOpenChat }: { chart: Chart; onOpenChat: () => void }) {
   const [laiyi, setLaiyi] = useState("")
   const [busy, setBusy] = useState(true)
 
   useEffect(() => {
-    if (!chartId) return
+    if (!chart?.chartId) return
     setLaiyi("")
     setBusy(true)
     const ctl = streamChat(
-      { chartId, mode: "laiyi" },
+      { chart, mode: "laiyi" },
       (d) => setLaiyi((s) => s + d),
       () => setBusy(false),
       (err) => { setLaiyi((s) => s + `\n[错误: ${err}]`); setBusy(false) },
     )
     return () => ctl.abort()
-  }, [chartId])
+  }, [chart])
 
   const items = parseLaiyi(laiyi)
   // 补齐到 3 张骨架；已解析的填充
@@ -96,7 +96,7 @@ export function LaiyiCard({ chartId, onOpenChat }: { chartId: string; onOpenChat
 }
 
 /** 自由问答 chat 面板；在 Sheet 内使用，占满容器高度，无外层边框 */
-export function QaChat({ chartId }: { chartId: string }) {
+export function QaChat({ chart }: { chart: Chart }) {
   const [chat, setChat] = useState<ChatTurn[]>([])
   const [input, setInput] = useState("")
   const [busy, setBusy] = useState(false)
@@ -117,7 +117,7 @@ export function QaChat({ chartId }: { chartId: string }) {
     setBusy(true)
 
     streamChat(
-      { chartId, mode: "qa", messages: history.map(({ role, content }) => ({ role, content })) },
+      { chart, mode: "qa", messages: history.map(({ role, content }) => ({ role, content })) },
       (d) => setChat((prev) => {
         const next = [...prev]
         next[assistantIdx] = { ...next[assistantIdx], content: next[assistantIdx].content + d }

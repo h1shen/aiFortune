@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { RotateCw, Loader2 } from "lucide-react"
 import { streamChat } from "@/lib/api"
 import { READING_SECTIONS, parseReading, type ReadingSectionKey } from "@/lib/reading-parse"
+import type { Chart } from "@/lib/types"
 
 /**
  * 六段索引元数据：中文数字 / 新标题 / 英文副标 / 小提示。
@@ -25,11 +26,11 @@ type ExtrasState = Partial<Record<ReadingSectionKey, string>>
 type RedoingState = Partial<Record<ReadingSectionKey, boolean>>
 
 export function ReadingSix({
-  chartId,
+  chart,
   readingText,
   busy,
 }: {
-  chartId: string
+  chart: Chart
   readingText: string
   busy: boolean
 }) {
@@ -82,7 +83,7 @@ export function ReadingSix({
     setExtras((x) => ({ ...x, [key]: "" }))
     setRedoing((r) => ({ ...r, [key]: true }))
     const ctl = streamChat(
-      { chartId, mode: "reading_section", section: key },
+      { chart, mode: "reading_section", section: key },
       (d) =>
         setExtras((x) => ({
           ...x,

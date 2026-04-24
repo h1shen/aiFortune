@@ -102,7 +102,8 @@ export interface ChatMessage {
 }
 
 export interface ChatRequest {
-  chartId: string
+  /** 完整命盘随 body 发送（无服务端状态，适配 Vercel serverless） */
+  chart: Chart
   mode: ChatMode
   section?: ReadingSectionKey
   messages?: ChatMessage[]

@@ -2,9 +2,8 @@ import json
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
-from .. import store
-from ..bazi.schemas import ChatRequest
-from ..llm import client, prompts
+from api.bazi.schemas import ChatRequest
+from api.llm import client, prompts
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -22,9 +21,10 @@ def _sse_stream(messages: list[dict]):
 
 @router.post("/stream")
 def chat_stream(req: ChatRequest):
-    chart = store.get(req.chartId)
-    if not chart:
-        raise HTTPException(status_code=404, detail="命盘不存在或已过期，请重新排盘")
+    # 无状态：前端把 localStorage 里完整命盘随 body 传上来
+    chart = req.chart
+    if not chart or not isinstance(chart, dict) or "pillars" not in chart:
+        raise HTTPException(status_code=400, detail="chart 缺失或不完整，请重新排盘")
 
     if req.mode == "reading":
         messages = prompts.reading_messages(chart)

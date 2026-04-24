@@ -1,8 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
-from ..bazi import core
-from ..bazi.schemas import CalculateRequest, CalculateResponse
-from .. import store
+from api.bazi import core
+from api.bazi.schemas import CalculateRequest, CalculateResponse
 
 router = APIRouter(prefix="/bazi", tags=["bazi"])
 
@@ -23,13 +22,5 @@ def calculate(req: CalculateRequest) -> dict:
         )
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"排盘失败：{e}")
-    store.put(chart["chartId"], chart)
-    return chart
-
-
-@router.get("/chart/{chart_id}", response_model=CalculateResponse)
-def get_chart(chart_id: str) -> dict:
-    chart = store.get(chart_id)
-    if not chart:
-        raise HTTPException(status_code=404, detail="命盘不存在或已过期，请重新排盘")
+    # MVP：不做服务端缓存。前端把命盘存 localStorage，chat 请求时随 body 带回。
     return chart

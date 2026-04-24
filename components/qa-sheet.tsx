@@ -8,13 +8,14 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet"
 import { QaChat } from "@/components/ai-reading-panel"
+import type { Chart } from "@/lib/types"
 
 export function QaSheet({
-  chartId,
+  chart,
   open,
   onOpenChange,
 }: {
-  chartId: string
+  chart: Chart
   open: boolean
   onOpenChange: (o: boolean) => void
 }) {
@@ -31,7 +32,7 @@ export function QaSheet({
           </SheetDescription>
         </SheetHeader>
         <div className="flex-1 overflow-hidden">
-          <QaChat chartId={chartId} />
+          <QaChat chart={chart} />
         </div>
       </SheetContent>
     </Sheet>

@@ -96,7 +96,8 @@ class ChatMessage(BaseModel):
 
 
 class ChatRequest(BaseModel):
-    chartId: str
+    # 前端把完整命盘从 localStorage 带上来（无服务端状态，适配 Vercel serverless）
+    chart: dict
     mode: Literal["reading", "laiyi", "qa", "reading_section"] = "qa"
     section: Optional[str] = None
     messages: list[ChatMessage] = []

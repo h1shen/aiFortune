@@ -2,9 +2,9 @@
 
 import { Suspense, useEffect, useState } from "react"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Loader2 } from "lucide-react"
-import { getChart, streamChat } from "@/lib/api"
+import { loadChartFromStorage, loadLatestChartId, streamChat } from "@/lib/api"
 import type { Chart } from "@/lib/types"
 import { SiteFooter } from "@/components/site-footer"
 import { PillarsCard, FiveElementsCard } from "@/components/chart-display"
@@ -15,6 +15,7 @@ import { ReadingSix } from "@/components/reading-six"
 import { LifeKLine } from "@/components/life-kline"
 
 function ResultInner() {
+  const router = useRouter()
   const params = useSearchParams()
   const chartId = params.get("chartId") || ""
   const [chart, setChart] = useState<Chart | null>(null)
@@ -27,22 +28,30 @@ function ResultInner() {
   // QA sheet open state (driven by LaiyiCard's「追问玄机」button)
   const [sheetOpen, setSheetOpen] = useState(false)
 
+  // 从 localStorage 读命盘（无后端持久化）
   useEffect(() => {
-    if (!chartId) { setError("缺少 chartId 参数"); return }
-    let cancelled = false
-    getChart(chartId)
-      .then((c) => { if (!cancelled) setChart(c) })
-      .catch((e) => { if (!cancelled) setError(e?.message || "命盘获取失败") })
-    return () => { cancelled = true }
-  }, [chartId])
+    if (!chartId) {
+      // 没带 chartId：有最近一次就跳过去，否则回首页
+      const latest = loadLatestChartId()
+      if (latest) router.replace(`/result?chartId=${latest}`)
+      else setError("缺少 chartId 参数；请从首页开始排盘")
+      return
+    }
+    const c = loadChartFromStorage(chartId)
+    if (!c) {
+      setError("本地未找到该命盘（换浏览器 / 清过缓存 / chartId 错误），请从首页重新排盘")
+      return
+    }
+    setChart(c)
+  }, [chartId, router])
 
-  // kick off reading SSE as soon as we have a chart
+  // 拿到 chart 后自动拉 reading
   useEffect(() => {
     if (!chart?.chartId) return
     setReadingText("")
     setReadingBusy(true)
     const ctl = streamChat(
-      { chartId: chart.chartId, mode: "reading" },
+      { chart, mode: "reading" },
       (d) => setReadingText((s) => s + d),
       () => setReadingBusy(false),
       (err) => {
@@ -51,7 +60,7 @@ function ResultInner() {
       },
     )
     return () => ctl.abort()
-  }, [chart?.chartId])
+  }, [chart])
 
   if (error) {
     return (
@@ -181,7 +190,7 @@ function ResultInner() {
           </div>
           <div className="flex flex-col gap-7">
             <LaiyiCard
-              chartId={chart.chartId}
+              chart={chart}
               onOpenChat={() => setSheetOpen(true)}
             />
             <ReadingSummaryCard readingText={readingText} busy={readingBusy} />
@@ -210,14 +219,14 @@ function ResultInner() {
           </div>
         </div>
         <ReadingSix
-          chartId={chart.chartId}
+          chart={chart}
           readingText={readingText}
           busy={readingBusy}
         />
       </section>
 
       <QaSheet
-        chartId={chart.chartId}
+        chart={chart}
         open={sheetOpen}
         onOpenChange={setSheetOpen}
       />
