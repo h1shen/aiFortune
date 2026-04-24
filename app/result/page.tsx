@@ -7,6 +7,7 @@ import { Loader2 } from "lucide-react"
 import { getChart, streamChat } from "@/lib/api"
 import type { Chart } from "@/lib/types"
 import { SiteFooter } from "@/components/site-footer"
+import { BrandMark } from "@/components/brand-mark"
 import { PillarsCard, FiveElementsCard } from "@/components/chart-display"
 import { LaiyiCard } from "@/components/ai-reading-panel"
 import { QaSheet } from "@/components/qa-sheet"
@@ -113,13 +114,25 @@ function ResultInner() {
 
         {/* 极简顶栏 */}
         <div
-          className="relative flex items-center gap-5 px-6 py-6 md:gap-20 md:px-12"
+          className="relative flex items-center gap-4 px-6 py-6 md:px-12"
           style={{ zIndex: 2 }}
         >
-          <span className="font-serif text-lg font-semibold">玄机阁</span>
-          <span className="text-[10px] tracking-[0.25em] text-muted-foreground">
-            KEYMIND
-          </span>
+          <Link href="/" className="flex items-center gap-2.5">
+            <span
+              className="flex h-9 w-9 items-center justify-center rounded-sm border border-border/60 bg-card text-foreground"
+              aria-hidden
+            >
+              <BrandMark className="h-6 w-6" />
+            </span>
+            <div className="flex flex-col leading-none">
+              <span className="font-serif text-lg font-semibold tracking-wider text-foreground">
+                Keymind 知命
+              </span>
+              <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                Keymind · AI Bazi
+              </span>
+            </div>
+          </Link>
           <div className="flex-1" />
           <Link
             href="/"
