@@ -8,6 +8,7 @@
 """
 from __future__ import annotations
 
+import math
 import uuid
 from datetime import datetime, timedelta
 
@@ -51,6 +52,68 @@ SHISHEN_DEF = {
     "我克同阴": "偏财", "我克异阴": "正财",
     "同我同阴": "比肩", "同我异阴": "劫财",
 }
+SHISHEN_CATEGORY = {
+    "比肩": "比劫", "劫财": "比劫",
+    "正印": "印星", "偏印": "印星",
+    "食神": "食伤", "伤官": "食伤",
+    "正财": "财星", "偏财": "财星",
+    "正官": "官杀", "七杀": "官杀",
+    "日元": "比劫",
+}
+WX_RELATION_TO_CATEGORY = {
+    "同我": "比劫", "生我": "印星", "我生": "食伤",
+    "我克": "财星", "克我": "官杀",
+}
+# 六冲 / 六合（用于流年与原局地支互动打分）
+CHONG = {
+    "子": "午", "午": "子", "丑": "未", "未": "丑",
+    "寅": "申", "申": "寅", "卯": "酉", "酉": "卯",
+    "辰": "戌", "戌": "辰", "巳": "亥", "亥": "巳",
+}
+HE6 = {
+    "子": "丑", "丑": "子", "寅": "亥", "亥": "寅",
+    "卯": "戌", "戌": "卯", "辰": "酉", "酉": "辰",
+    "巳": "申", "申": "巳", "午": "未", "未": "午",
+}
+
+
+def _year_ganzhi(year: int) -> str:
+    """流年干支（忽略立春，年度展示精度足够）。"""
+    return TIANGAN[(year - 4) % 10] + DIZHI[(year - 4) % 12]
+
+
+def _liunian_score(
+    year: int, dayun_score: int, rg: str, orig_branches: list[str],
+    yongshen: list[str], jishen: list[str],
+) -> dict:
+    """流年运势分数：以大运为基线叠加流年干支 + 冲合 + 微扰动。范围 [-8, +8]。"""
+    gz = _year_ganzhi(year)
+    stem, branch = gz[0], gz[1]
+    score = float(dayun_score) * 0.5
+
+    # 流年天干十神类
+    stem_tg = calc_shishen(rg, stem)
+    stem_cat = SHISHEN_CATEGORY.get(stem_tg, "")
+    if stem_cat in yongshen: score += 1.8
+    elif stem_cat in jishen: score -= 1.8
+
+    # 流年地支五行对日主的角色
+    branch_cat = WX_RELATION_TO_CATEGORY[_shengke(TG_WX[rg], DZ_WX[branch])]
+    if branch_cat in yongshen: score += 1.2
+    elif branch_cat in jishen: score -= 1.2
+
+    # 冲合原局（年/月/日/时支 权重不同：日支最重）
+    weights = [0.3, 0.5, 0.8, 0.3]
+    for ob, w in zip(orig_branches, weights):
+        if CHONG.get(branch) == ob: score -= 1.0 * w
+        if HE6.get(branch) == ob:   score += 0.7 * w
+
+    # 确定性扰动（给曲线加肌理，不是每次随机）
+    seed = sum(ord(c) for c in rg) % 7
+    score += math.sin(year * 1.37 + seed) * 0.35
+
+    score = max(-8.0, min(8.0, score))
+    return {"year": year, "ganzhi": gz, "tenGod": stem_tg, "score": round(score, 2)}
 WX_COLOR = {"金": "#c9a678", "木": "#4a7c59", "水": "#3e5a7a", "火": "#b84545", "土": "#a88658"}
 
 
@@ -202,16 +265,31 @@ def calculate(
     yun = ec.getYun(1 if gender == "male" else 0)
     dayun_raw = yun.getDaYun()  # 含胎元 + 10 运
     dayun = []
+    rg_wx = TG_WX[rg]
     for dy in dayun_raw[1:9]:  # 跳过首个（胎/起运前）
         gz = dy.getGanZhi() or ""
         if not gz:
             continue
+        stem, branch = gz[0], gz[1]
+        stem_tg = calc_shishen(rg, stem)
+        # 运势评分：-5 ~ +5，基于天干十神类别 + 地支五行相对日主的角色
+        score = 0
+        stem_cat = SHISHEN_CATEGORY.get(stem_tg, "")
+        if stem_cat in yongshen: score += 3
+        elif stem_cat in jishen: score -= 3
+        branch_cat = WX_RELATION_TO_CATEGORY[_shengke(rg_wx, DZ_WX[branch])]
+        if branch_cat in yongshen: score += 2
+        elif branch_cat in jishen: score -= 2
+        score = max(-5, min(5, score))
+        label = "顺" if score > 1 else ("阻" if score < -1 else "平")
         dayun.append({
             "ganzhi": gz,
             "startAge": dy.getStartAge(),
             "startYear": dy.getStartYear(),
             "endYear": dy.getEndYear(),
-            "tenGod": calc_shishen(rg, gz[0]),
+            "tenGod": stem_tg,
+            "fortuneScore": score,
+            "fortuneLabel": label,
         })
 
     # 当前大运 & 流年
@@ -222,6 +300,14 @@ def calculate(
             current_dayun = dy
             break
     cur_liunian = Solar.fromYmdHms(now_year, 6, 1, 0, 0, 0).getLunar().getYearInGanZhi()
+
+    # 流年逐年打分（80 年） —— 折线图的主数据
+    liunian_scores: list[dict] = []
+    for dy in dayun:
+        for y in range(dy["startYear"], dy["endYear"] + 1):
+            liunian_scores.append(
+                _liunian_score(y, dy["fortuneScore"], rg, branches, yongshen, jishen)
+            )
 
     chart_id = uuid.uuid4().hex[:16]
 
@@ -244,6 +330,7 @@ def calculate(
         "jishen": jishen,
         "fiveElements": five,
         "dayun": dayun,
+        "liunianScores": liunian_scores,
         "currentDayun": current_dayun,
         "currentYear": now_year,
         "currentLiunian": cur_liunian,

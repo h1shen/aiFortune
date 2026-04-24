@@ -59,7 +59,23 @@ def _chart_summary(chart: dict[str, Any]) -> str:
 
 【当前大运 / 流年】
 当前大运：{current_dy.get("ganzhi", "未入运")}（{current_dy.get("startYear", "?")} - {current_dy.get("endYear", "?")}，{current_dy.get("tenGod", "")}）
-{chart["currentYear"]} 年流年：{chart["currentLiunian"]}"""
+{chart["currentYear"]} 年流年：{chart["currentLiunian"]}
+
+【大运排布（必须严格按此干支顺序引用，不得自行推演）】
+{_dayun_table(chart)}"""
+
+
+def _dayun_table(chart: dict[str, Any]) -> str:
+    rows = []
+    cur_year = chart.get("currentYear", 0)
+    for dy in chart.get("dayun", []):
+        is_current = dy["startYear"] <= cur_year <= dy["endYear"]
+        marker = "← 当前" if is_current else ""
+        rows.append(
+            f"  {dy['startYear']}-{dy['endYear']} ({dy['startAge']:>2}-{dy['startAge']+9}岁) "
+            f"{dy['ganzhi']} · {dy['tenGod']} · {dy['fortuneLabel']}（{dy['fortuneScore']:+d}） {marker}"
+        )
+    return "\n".join(rows) if rows else "（无）"
 
 
 def reading_messages(chart: dict[str, Any]) -> list[dict]:

@@ -46,6 +46,15 @@ export interface DaYun {
   startYear: number
   endYear: number
   tenGod: string
+  fortuneScore: number // -5 ~ +5
+  fortuneLabel: string // 顺 / 平 / 阻
+}
+
+export interface LiunianScore {
+  year: number
+  ganzhi: string
+  tenGod: string
+  score: number // -8 ~ +8
 }
 
 export interface Chart {
@@ -67,6 +76,7 @@ export interface Chart {
   jishen: string[]
   fiveElements: Record<"金" | "木" | "水" | "火" | "土", number>
   dayun: DaYun[]
+  liunianScores: LiunianScore[]
   currentDayun: DaYun | null
   currentYear: number
   currentLiunian: string

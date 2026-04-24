@@ -46,6 +46,15 @@ class DaYun(BaseModel):
     startYear: int
     endYear: int
     tenGod: str
+    fortuneScore: int = 0  # -5 ~ +5
+    fortuneLabel: str = "平"  # 顺 / 平 / 阻
+
+
+class LiunianScore(BaseModel):
+    year: int
+    ganzhi: str
+    tenGod: str
+    score: float
 
 
 class CalculateResponse(BaseModel):
@@ -68,6 +77,7 @@ class CalculateResponse(BaseModel):
     jishen: list[str]
     fiveElements: dict[str, int]  # 金木水火土 -> percent (0-100)
     dayun: list[DaYun]
+    liunianScores: list[LiunianScore] = []
     currentDayun: Optional[DaYun]
     currentYear: int
     currentLiunian: str

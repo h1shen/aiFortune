@@ -90,9 +90,9 @@ function ResultInner() {
         </div>
       </div>
 
-      {/* 命盘整体解读 · 全宽 6 段结构化卡片 */}
+      {/* 命盘整体解读 · 全宽：运势折线图 + 6 段结构化卡片 */}
       <section className="mt-10 md:mt-12">
-        <ReadingGrid chartId={chart.chartId} />
+        <ReadingGrid chart={chart} />
       </section>
     </main>
   )
