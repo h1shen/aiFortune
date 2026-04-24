@@ -46,7 +46,7 @@ export function CtaSection() {
         </div>
 
         <p className="mt-8 text-xs text-muted-foreground">
-          已有 <span className="font-serif text-foreground">1,247,586</span> 人通过玄机阁窥见命运
+          已有 <span className="font-serif text-foreground">1,247,586</span> 人通过 Keymind 知命窥见命运
         </p>
       </div>
     </section>

@@ -39,7 +39,7 @@ export function HeroSection() {
           </h1>
 
           <p className="mt-6 max-w-xl text-pretty font-serif text-base leading-relaxed text-muted-foreground md:text-lg">
-            玄机阁以深度学习模型推演传统子平术，结合紫微斗数、奇门遁甲典籍，
+            Keymind 知命以深度学习模型推演传统子平术，结合紫微斗数、奇门遁甲典籍，
             为您解析四柱八字、五行喜忌、十神格局，洞见人生脉络。
           </p>
 

@@ -23,12 +23,12 @@ export function SiteFooter() {
           <div className="md:col-span-2">
             <Link href="/" className="flex items-center gap-2.5">
               <span className="flex h-10 w-10 items-center justify-center rounded-sm bg-primary font-serif text-xl font-semibold text-primary-foreground">
-                玄
+                知
               </span>
               <div className="flex flex-col leading-none">
-                <span className="font-serif text-lg font-semibold tracking-wider text-foreground">玄机阁</span>
+                <span className="font-serif text-lg font-semibold tracking-wider text-foreground">Keymind 知命</span>
                 <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                  XuanJi · AI Bazi
+                  Keymind · AI Bazi
                 </span>
               </div>
             </Link>
@@ -61,7 +61,7 @@ export function SiteFooter() {
 
         <div className="mt-14 flex flex-col items-start justify-between gap-4 border-t border-border pt-6 md:flex-row md:items-center">
           <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} 玄机阁 XuanJi Studio · 本站测算仅供参考，命运仍握于己手。
+            © {new Date().getFullYear()} Keymind 知命 Studio · 本站测算仅供参考，命运仍握于己手。
           </p>
           <div className="flex gap-5 text-xs text-muted-foreground">
             <Link href="#" className="hover:text-foreground">

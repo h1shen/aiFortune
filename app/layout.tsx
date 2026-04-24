@@ -17,7 +17,7 @@ const notoSerifSC = Noto_Serif_SC({
 })
 
 export const metadata: Metadata = {
-  title: "玄机阁 · AI 八字命理",
+  title: "Keymind 知命 · AI 八字命理",
   description: "融合千年命理智慧与现代人工智能，精准解读您的八字命盘、五行喜忌、流年运势。",
   generator: "v0.app",
 }

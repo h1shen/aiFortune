@@ -3,34 +3,79 @@
 import type React from "react"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Calendar, Clock, MapPin, Sparkles } from "lucide-react"
+import { Calendar, Clock, Loader2, MapPin, Sparkles } from "lucide-react"
+import { calculateBazi } from "@/lib/api"
+import type { CalendarType, Gender } from "@/lib/types"
 
-const timeOptions = [
-  { value: "子", label: "子时 · 23:00 – 01:00" },
-  { value: "丑", label: "丑时 · 01:00 – 03:00" },
-  { value: "寅", label: "寅时 · 03:00 – 05:00" },
-  { value: "卯", label: "卯时 · 05:00 – 07:00" },
-  { value: "辰", label: "辰时 · 07:00 – 09:00" },
-  { value: "巳", label: "巳时 · 09:00 – 11:00" },
-  { value: "午", label: "午时 · 11:00 – 13:00" },
-  { value: "未", label: "未时 · 13:00 – 15:00" },
-  { value: "申", label: "申时 · 15:00 – 17:00" },
-  { value: "酉", label: "酉时 · 17:00 – 19:00" },
-  { value: "戌", label: "戌时 · 19:00 – 21:00" },
-  { value: "亥", label: "亥时 · 21:00 – 23:00" },
+// 时辰 → 小时（取每个 2 小时段的中位数，子时用 00:00）
+const timeOptions: { value: string; label: string; hour: number }[] = [
+  { value: "子", label: "子时 · 23:00 – 01:00", hour: 0 },
+  { value: "丑", label: "丑时 · 01:00 – 03:00", hour: 2 },
+  { value: "寅", label: "寅时 · 03:00 – 05:00", hour: 4 },
+  { value: "卯", label: "卯时 · 05:00 – 07:00", hour: 6 },
+  { value: "辰", label: "辰时 · 07:00 – 09:00", hour: 8 },
+  { value: "巳", label: "巳时 · 09:00 – 11:00", hour: 10 },
+  { value: "午", label: "午时 · 11:00 – 13:00", hour: 12 },
+  { value: "未", label: "未时 · 13:00 – 15:00", hour: 14 },
+  { value: "申", label: "申时 · 15:00 – 17:00", hour: 16 },
+  { value: "酉", label: "酉时 · 17:00 – 19:00", hour: 18 },
+  { value: "戌", label: "戌时 · 19:00 – 21:00", hour: 20 },
+  { value: "亥", label: "亥时 · 21:00 – 23:00", hour: 22 },
 ]
 
 export function BaziForm() {
-  const [calendarType, setCalendarType] = useState<"solar" | "lunar">("solar")
+  const router = useRouter()
+  const [calendarType, setCalendarType] = useState<CalendarType>("solar")
+  const [gender, setGender] = useState<Gender>("male")
+  const [name, setName] = useState("")
+  const [birthDate, setBirthDate] = useState("")
+  const [birthTime, setBirthTime] = useState("")
+  const [location, setLocation] = useState("")
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    console.log("[v0] Bazi form submitted")
+    setError(null)
+
+    if (!birthDate) { setError("请选择出生日期"); return }
+    const timeOpt = timeOptions.find((t) => t.value === birthTime)
+    if (!timeOpt) { setError("请选择出生时辰"); return }
+
+    // 尽量把用户输入解析成 省/市
+    const loc = location.trim()
+    let province = "", city = ""
+    const match = loc.match(/^(.+?省|.+?市|.+?区)?(.+)$/)
+    if (match) {
+      province = (match[1] || "").replace(/省|市|区$/, "")
+      city = (match[2] || "").replace(/省|市|区$/, "")
+    } else {
+      city = loc
+    }
+
+    setSubmitting(true)
+    try {
+      const chart = await calculateBazi({
+        name: name.trim() || undefined,
+        gender,
+        calendarType,
+        birthDate,
+        birthHour: timeOpt.hour,
+        birthMinute: 0,
+        isLeapMonth: false,
+        location: { province, city },
+      })
+      router.push(`/result?chartId=${chart.chartId}`)
+    } catch (err: any) {
+      setError(err?.message || "排盘失败，请稍后再试")
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -38,22 +83,10 @@ export function BaziForm() {
       onSubmit={handleSubmit}
       className="paper-texture relative rounded-md border border-border bg-card/95 p-6 shadow-[0_30px_60px_-30px_rgba(20,25,45,0.35)] backdrop-blur-sm md:p-8"
     >
-      <div
-        aria-hidden
-        className="absolute -left-px -top-px h-8 w-8 border-l-2 border-t-2 border-accent"
-      />
-      <div
-        aria-hidden
-        className="absolute -right-px -top-px h-8 w-8 border-r-2 border-t-2 border-accent"
-      />
-      <div
-        aria-hidden
-        className="absolute -bottom-px -left-px h-8 w-8 border-b-2 border-l-2 border-accent"
-      />
-      <div
-        aria-hidden
-        className="absolute -bottom-px -right-px h-8 w-8 border-b-2 border-r-2 border-accent"
-      />
+      <div aria-hidden className="pointer-events-none absolute -left-px -top-px h-8 w-8 border-l-2 border-t-2 border-accent" />
+      <div aria-hidden className="pointer-events-none absolute -right-px -top-px h-8 w-8 border-r-2 border-t-2 border-accent" />
+      <div aria-hidden className="pointer-events-none absolute -bottom-px -left-px h-8 w-8 border-b-2 border-l-2 border-accent" />
+      <div aria-hidden className="pointer-events-none absolute -bottom-px -right-px h-8 w-8 border-b-2 border-r-2 border-accent" />
 
       <div className="mb-1 flex items-center justify-between">
         <div>
@@ -69,11 +102,11 @@ export function BaziForm() {
 
       <div className="space-y-5">
         <div className="space-y-2">
-          <Label htmlFor="name" className="font-serif text-sm text-foreground">
-            姓名
-          </Label>
+          <Label htmlFor="name" className="font-serif text-sm text-foreground">姓名（可选）</Label>
           <Input
             id="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             placeholder="请输入您的姓名"
             className="h-11 border-border bg-background/50 font-serif"
           />
@@ -81,7 +114,7 @@ export function BaziForm() {
 
         <div className="space-y-2">
           <Label className="font-serif text-sm text-foreground">性别</Label>
-          <RadioGroup defaultValue="male" className="grid grid-cols-2 gap-3">
+          <RadioGroup value={gender} onValueChange={(v) => setGender(v as Gender)} className="grid grid-cols-2 gap-3">
             <Label
               htmlFor="male"
               className="flex h-11 cursor-pointer items-center justify-center gap-2 rounded-md border border-border bg-background/50 font-serif text-sm transition-colors has-[:checked]:border-accent has-[:checked]:bg-accent/10 has-[:checked]:text-foreground"
@@ -128,25 +161,23 @@ export function BaziForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="birthdate" className="font-serif text-sm text-foreground">
-            出生日期
-          </Label>
+          <Label htmlFor="birthdate" className="font-serif text-sm text-foreground">出生日期</Label>
           <div className="relative">
             <Calendar className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               id="birthdate"
               type="date"
+              value={birthDate}
+              onChange={(e) => setBirthDate(e.target.value)}
               className="h-11 border-border bg-background/50 pl-10 font-serif"
             />
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="birthtime" className="font-serif text-sm text-foreground">
-            出生时辰
-          </Label>
-          <Select>
-            <SelectTrigger id="birthtime" className="h-11 border-border bg-background/50 font-serif">
+          <Label htmlFor="birthtime" className="font-serif text-sm text-foreground">出生时辰</Label>
+          <Select value={birthTime} onValueChange={setBirthTime}>
+            <SelectTrigger id="birthtime" className="h-11 w-full border-border bg-background/50 font-serif">
               <Clock className="mr-1 h-4 w-4 text-muted-foreground" />
               <SelectValue placeholder="请选择出生时辰" />
             </SelectTrigger>
@@ -161,13 +192,13 @@ export function BaziForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="location" className="font-serif text-sm text-foreground">
-            出生地（用于真太阳时校准）
-          </Label>
+          <Label htmlFor="location" className="font-serif text-sm text-foreground">出生地（用于真太阳时校准）</Label>
           <div className="relative">
             <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               id="location"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
               placeholder="如：浙江省杭州市"
               className="h-11 border-border bg-background/50 pl-10 font-serif"
             />
@@ -175,12 +206,27 @@ export function BaziForm() {
         </div>
       </div>
 
+      {error && (
+        <p className="mt-4 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 font-serif text-xs text-destructive">
+          {error}
+        </p>
+      )}
+
       <Button
         type="submit"
-        className="mt-7 h-12 w-full bg-primary font-serif text-base tracking-widest text-primary-foreground hover:bg-primary/90"
+        disabled={submitting}
+        className="mt-7 h-12 w-full bg-primary font-serif text-base tracking-widest text-primary-foreground hover:bg-primary/90 disabled:opacity-70"
       >
-        <Sparkles className="mr-2 h-4 w-4" />
-        开 启 命 盘
+        {submitting ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 排盘中...
+          </>
+        ) : (
+          <>
+            <Sparkles className="mr-2 h-4 w-4" />
+            开 启 命 盘
+          </>
+        )}
       </Button>
 
       <p className="mt-4 text-center text-[11px] leading-relaxed text-muted-foreground">

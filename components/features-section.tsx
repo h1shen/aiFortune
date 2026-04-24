@@ -43,7 +43,7 @@ export function FeaturesSection() {
         </div>
 
         <div className="mb-14 flex flex-col items-center text-center">
-          <p className="text-xs uppercase tracking-[0.3em] text-accent">Why XuanJi</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-accent">Why Keymind</p>
           <h2 className="mt-3 max-w-3xl text-balance font-serif text-4xl font-semibold leading-tight text-foreground md:text-5xl">
             六维解析，<span className="text-accent">洞见</span>命盘全貌
           </h2>

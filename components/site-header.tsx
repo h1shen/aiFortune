@@ -24,11 +24,11 @@ export function SiteHeader() {
             className="flex h-9 w-9 items-center justify-center rounded-sm bg-primary font-serif text-lg font-semibold text-primary-foreground"
             aria-hidden
           >
-            玄
+            知
           </span>
           <div className="flex flex-col leading-none">
-            <span className="font-serif text-lg font-semibold tracking-wider text-foreground">玄机阁</span>
-            <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">XuanJi · AI Bazi</span>
+            <span className="font-serif text-lg font-semibold tracking-wider text-foreground">Keymind 知命</span>
+            <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Keymind · AI Bazi</span>
           </div>
         </Link>
 

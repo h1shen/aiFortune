@@ -14,3 +14,12 @@ next.user-config.*
 node_modules
 .next/
 .DS_Store
+
+# Python backend
+server/.env
+server/__pycache__/
+server/.venv/
+server/**/*.pyc
+
+# 本地参考资料 / 联调抓包快照 / 含密钥
+tmp/
